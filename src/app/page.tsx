@@ -8,7 +8,7 @@ export default function Home() {
   useEffect(() => {
     setIsLoaded(true); // Reveal the image only after mounting
   }, []);
-  
+
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)] bg-gradient-to-r from-[#a0c4ff] to-[#8dd6f9]">
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
@@ -24,19 +24,19 @@ export default function Home() {
             <style jsx>{`
               @keyframes swim {
                 0% {
-                  transform: translateY(0px) translateX(-200px) rotate(0deg);
+                  transform: translateY(0px) translateX(-250px) rotate(0deg);
                 }
                 25% {
-                  transform: translateY(-240px) translateX(25vw) rotate(-30deg);
+                  transform: translateY(-240px) translateX(40vw) rotate(-60deg);
                 }
                 50% {
-                  transform: translateY(-480px) translateX(50vw) rotate(600deg);
+                  transform: translateY(-480px) translateX(50vw) rotate(120deg);
                 }
                 75% {
-                  transform: translateY(-240px) translateX(75vw) rotate(-30deg);
+                  transform: translateY(-240px) translateX(85vw) rotate(360deg);
                 }
                 100% {
-                  transform: translateY(-480px) translateX(100vw) rotate(0deg);
+                  transform: translateY(-480px) translateX(150vw) rotate(480deg);
                 }
               }
 
@@ -44,7 +44,7 @@ export default function Home() {
                 display: inline-block;
                 position: absolute;
                 left: -200px; /* Start offscreen */
-                animation: swim 15s linear infinite;
+                animation: swim 18s linear infinite;
               }
 
               .hidden {

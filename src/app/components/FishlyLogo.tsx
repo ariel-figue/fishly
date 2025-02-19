@@ -15,8 +15,10 @@ export default function FishlyLogo({ animated = false }) {
   return (
     <div
       className={`fishly-logo ${animated ? "swim-container" : ""}`}
-      style={{ cursor: "pointer" }}
-      onClick={() => window.location.href = "/"}
+      style={{ cursor: animated ? "default" : "pointer" }}
+      onClick={animated ? undefined : () => {
+        window.location.href = "/";
+      }}
     >
       <Image
         className="fish-image"
@@ -58,4 +60,3 @@ export default function FishlyLogo({ animated = false }) {
     </div>
   );
 }
-

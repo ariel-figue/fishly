@@ -30,7 +30,7 @@ export default function Footer() {
         <h3 className="text-lg font-semibold mb-3">Contact</h3>
         <p className="text-gray-400">Have questions or feedback? Reach out!</p>
         <p className="text-gray-400 mt-1">📧 <strong>Email:</strong> <a href="mailto:contact@ariel-figueroa.com" className="underline hover:text-blue-400">contact@ariel-figueroa.com</a></p>
-        <p className="text-gray-400 mt-1">🌐 <strong>Creator:</strong> <a href="https://www.ariel-figueroa.com" target="_blank" className="underline hover:text-blue-400">ariel-figueroa.com</a></p>
+        <p className="text-gray-400 mt-1">🌐 <strong>Creator:</strong> <a href="https://www.ariel-figueroa.com" target="_blank" className="underline hover:text-blue-400">www.ariel-figueroa.com</a></p>
       </div>
     </div>
 

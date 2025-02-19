@@ -9,11 +9,12 @@ import FishlyLogo from "../components/FishlyLogo";
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const router = useRouter();
+  // const router = useRouter();
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    router.push("/dashboard");
+    // router.push("/dashboard");
+    window.alert("Still working on this!");
   };
 
   return (

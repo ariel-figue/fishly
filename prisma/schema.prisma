@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,4 +5,192 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  name         String?
+  passwordHash String
+  avatar       String? // Profile Picture URL
+  createdAt    DateTime @default(now())
+
+  catches       Catch[]
+  favoriteSpots FavoriteLocation[]
+  friendships   Friendship[]       @relation(name: "UserFriendships")
+  friendOf      Friendship[]       @relation(name: "FriendUserFriendships")
+  comments      Comment[]
+  likes         Like[]
+  notifications Notification[]
+  privacy       PrivacySettings?
+  auditLogs     AuditLog[]
+  oauthAccounts OAuthAccount[]
+
+  @@map("users") // Custom table name (optional)
+}
+
+// 🎣 Fish Species Table
+model FishSpecies {
+  id             Int          @id @default(autoincrement())
+  commonName     String       @unique
+  scientificName String       @unique
+  minSize        Float?
+  maxSize        Float?
+  bagLimit       Int?
+  regulations    Regulation[]
+  catches        Catch[]
+}
+
+// 📜 Regulations Table (State-specific Fishing Rules)
+model Regulation {
+  id          Int       @id @default(autoincrement())
+  state       String
+  fishId      Int
+  minSize     Float?
+  maxSize     Float?
+  bagLimit    Int?
+  seasonStart DateTime?
+  seasonEnd   DateTime?
+
+  fish FishSpecies @relation(fields: [fishId], references: [id], onDelete: Cascade)
+
+  @@index([state, fishId]) // Faster lookup by state & fish
+}
+
+// 📍 Fishing Location Table
+model Location {
+  id        Int                @id @default(autoincrement())
+  name      String
+  latitude  Float
+  longitude Float
+  catches   Catch[]
+  favorites FavoriteLocation[]
+}
+
+// 🎣 Fish Catch Table
+model Catch {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  speciesId  Int
+  locationId Int
+  weight     Float?
+  length     Float?
+  imageUrl   String?
+  baitUsed   String?
+  timestamp  DateTime @default(now())
+
+  user     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  species  FishSpecies @relation(fields: [speciesId], references: [id], onDelete: Cascade)
+  location Location    @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  weather Weather? @relation(name: "CatchWeather") // ✅ Only Weather holds the reference
+
+  comments Comment[]
+  likes    Like[]
+
+  @@index([userId, speciesId])
+}
+
+// ☁️ Weather Table (Conditions at Time of Catch)
+model Weather {
+  id      Int @id @default(autoincrement())
+  catchId Int @unique // Ensures one-to-one relationship ✅ FIXED
+
+  temperature Float?
+  windSpeed   Float?
+  humidity    Float?
+  condition   String?
+
+  catch Catch @relation(name: "CatchWeather", fields: [catchId], references: [id], onDelete: Cascade) // ✅ Weather references Catch
+}
+
+// 📍 Favorite Fishing Locations Table
+model FavoriteLocation {
+  id         Int @id @default(autoincrement())
+  userId     Int
+  locationId Int
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  location Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+}
+
+// 👥 Friendships Table (Friend Requests & Friends)
+model Friendship {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  friendId  Int
+  status    String   @default("pending") // accepted, pending, rejected
+  createdAt DateTime @default(now())
+
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade, name: "UserFriendships")
+  friend User @relation(fields: [friendId], references: [id], onDelete: Cascade, name: "FriendUserFriendships")
+
+  @@unique([userId, friendId]) // Prevents duplicate friend entries
+  @@index([userId, friendId]) // Optimized lookup for mutual friends
+}
+
+// 💬 Comments on Catches
+model Comment {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  catchId   Int
+  text      String
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  catch Catch @relation(fields: [catchId], references: [id], onDelete: Cascade)
+}
+
+// 👍 Likes on Catches
+model Like {
+  id      Int @id @default(autoincrement())
+  userId  Int
+  catchId Int
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  catch Catch @relation(fields: [catchId], references: [id], onDelete: Cascade)
+}
+
+// 🔔 Notifications Table
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  message   String
+  createdAt DateTime @default(now())
+  read      Boolean  @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// 🔒 Privacy Settings
+model PrivacySettings {
+  id          Int    @id @default(autoincrement())
+  userId      Int    @unique
+  profileView String @default("public") // public, friends-only, private
+  catchView   String @default("public") // public, friends-only, private
+  friendList  String @default("public") // public, private
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// 🔍 Audit Log Table (Tracks User Actions)
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  action    String
+  timestamp DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// 🔑 OAuth Authentication (For Google, GitHub, etc.)
+model OAuthAccount {
+  id           Int     @id @default(autoincrement())
+  userId       Int
+  provider     String
+  providerId   String  @unique
+  accessToken  String  @map("_accessToken") // Hidden field
+  refreshToken String? @map("_refreshToken") // Hidden field
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

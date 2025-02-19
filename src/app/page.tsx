@@ -1,5 +1,6 @@
 "use client";
 
+import { Analytics } from "@vercel/analytics/react"
 import Link from "next/link";
 import Layout from "./components/Layout";
 import FishlyLogo from "./components/FishlyLogo";
@@ -34,6 +35,7 @@ export default function Home() {
           </Link>
         </div>
       </section>
+      <Analytics />
     </Layout>
   );
 }

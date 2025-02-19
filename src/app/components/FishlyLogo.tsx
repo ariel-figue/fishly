@@ -13,7 +13,11 @@ export default function FishlyLogo({ animated = false }) {
   if (!isMounted) return null;
 
   return (
-    <div className={`fishly-logo ${animated ? "swim-container" : ""}`}>
+    <div
+      className={`fishly-logo ${animated ? "swim-container" : ""}`}
+      style={{ cursor: "pointer" }}
+      onClick={() => window.location.href = "/"}
+    >
       <Image
         className="fish-image"
         src="/fishly_logo_white_fill.png"
@@ -48,6 +52,7 @@ export default function FishlyLogo({ animated = false }) {
           animation: swim 18s linear infinite;
           width: 200px;
           height: 200px;
+          cursor: pointer;
         }
       `}</style>
     </div>

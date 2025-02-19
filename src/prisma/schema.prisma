@@ -1,0 +1,167 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 🧑‍💻 Users Table
+model User {
+  id             Int       @id @default(autoincrement())
+  email          String    @unique
+  name           String?
+  passwordHash   String
+  createdAt      DateTime  @default(now())
+  catches        Catch[]
+  favoriteSpots  FavoriteLocation[]
+  friendships    Friendship[]
+  comments       Comment[]
+  likes          Like[]
+  notifications  Notification[]
+  privacy        PrivacySettings?
+}
+
+// 🎣 Fish Species Table
+model FishSpecies {
+  id            Int      @id @default(autoincrement())
+  commonName    String   @unique
+  scientificName String  @unique
+  minSize       Float?
+  maxSize       Float?
+  bagLimit      Int?
+  regulations   Regulation[]
+}
+
+// 📜 Regulations Table (State-specific Fishing Rules)
+model Regulation {
+  id         Int         @id @default(autoincrement())
+  state      String
+  fishId     Int         @unique
+  minSize    Float?
+  maxSize    Float?
+  bagLimit   Int?
+  seasonStart DateTime?
+  seasonEnd   DateTime?
+  fish       FishSpecies @relation(fields: [fishId], references: [id])
+}
+
+// 📍 Fishing Location Table
+model Location {
+  id          Int      @id @default(autoincrement())
+  name        String
+  latitude    Float
+  longitude   Float
+  catches     Catch[]
+}
+
+// 🎣 Fish Catch Table
+model Catch {
+  id          Int         @id @default(autoincrement())
+  userId      Int
+  speciesId   Int
+  locationId  Int
+  weight      Float?
+  length      Float?
+  imageUrl    String?
+  timestamp   DateTime    @default(now())
+  weatherId   Int?
+  comments    Comment[]
+  likes       Like[]
+  user        User        @relation(fields: [userId], references: [id])
+  species     FishSpecies @relation(fields: [speciesId], references: [id])
+  location    Location    @relation(fields: [locationId], references: [id])
+  weather     Weather?    @relation(fields: [weatherId], references: [id])
+}
+
+// ☁️ Weather Table (Conditions at Time of Catch)
+model Weather {
+  id          Int       @id @default(autoincrement())
+  temperature Float?
+  windSpeed   Float?
+  humidity    Float?
+  condition   String?
+  catch       Catch?
+}
+
+// 📍 Favorite Fishing Locations Table
+model FavoriteLocation {
+  id         Int       @id @default(autoincrement())
+  userId     Int
+  locationId Int
+  user       User      @relation(fields: [userId], references: [id])
+  location   Location  @relation(fields: [locationId], references: [id])
+}
+
+// 👥 Friendships Table (Friend Requests & Friends)
+model Friendship {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  friendId  Int
+  status    String  @default("pending") // accepted, pending, rejected
+  createdAt DateTime @default(now())
+  user      User    @relation(fields: [userId], references: [id])
+  friend    User    @relation(fields: [friendId], references: [id])
+}
+
+// 💬 Comments on Catches
+model Comment {
+  id      Int      @id @default(autoincrement())
+  userId  Int
+  catchId Int
+  text    String
+  createdAt DateTime @default(now())
+  user    User  @relation(fields: [userId], references: [id])
+  catch   Catch @relation(fields: [catchId], references: [id])
+}
+
+// 👍 Likes on Catches
+model Like {
+  id      Int      @id @default(autoincrement())
+  userId  Int
+  catchId Int
+  user    User  @relation(fields: [userId], references: [id])
+  catch   Catch @relation(fields: [catchId], references: [id])
+}
+
+// 🔔 Notifications Table
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  message   String
+  createdAt DateTime @default(now())
+  read      Boolean  @default(false)
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+// 🔒 Privacy Settings
+model PrivacySettings {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @unique
+  profileView  String   @default("public") // public, friends-only, private
+  catchView    String   @default("public") // public, friends-only, private
+  friendList   String   @default("public") // public, private
+  user         User     @relation(fields: [userId], references: [id])
+}
+
+// 🔍 Audit Log Table (Tracks User Actions)
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  action    String
+  timestamp DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+// 🔑 OAuth Authentication (For Google, Facebook, etc.)
+model OAuthAccount {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  provider      String
+  providerId    String   @unique
+  accessToken   String
+  refreshToken  String?
+  user          User     @relation(fields: [userId], references: [id])
+}

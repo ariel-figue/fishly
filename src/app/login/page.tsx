@@ -18,13 +18,16 @@ export default function Login() {
 
   return (
     <Layout>
-      <section className="flex flex-col gap-4 items-center">
+      <section className="flex flex-col gap-4 items-center w-[95vw]">
         <FishlyLogo animated={false} />
-        <h2 className="text-5xl font-semibold text-center text-[#2c3e50]">
-          Log in
-        </h2>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4 bg-white p-4 rounded-md">
-          <label htmlFor="username" className="text-[#34495e]">
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col gap-4 bg-white p-6 rounded-md w-full sm:w-[500px]"
+        >
+          <h2 className="text-5xl font-semibold text-center text-[#2c3e50] pb-2">
+            Log in
+          </h2>
+          <label htmlFor="username" className="text-[#34495e] font-semibold">
             Username
           </label>
           <input
@@ -32,9 +35,9 @@ export default function Login() {
             id="username"
             value={username}
             onChange={(event) => setUsername(event.target.value)}
-            className="border-2 border-[#dfe6e9] p-2 rounded-md w-full sm:w-80"
+            className="border-2 border-[#dfe6e9] p-2 rounded-md w-full font-semibold"
           />
-          <label htmlFor="password" className="text-[#34495e]">
+          <label htmlFor="password" className="text-[#34495e] font-semibold">
             Password
           </label>
           <input
@@ -42,14 +45,17 @@ export default function Login() {
             id="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            className="border-2 border-[#dfe6e9] p-2 rounded-md w-full sm:w-80"
+            className="border-2 border-[#dfe6e9] p-2 rounded-md w-full font-semibold"
           />
-          <button type="submit" className="bg-[#2c3e50] text-white p-2 rounded-md font-bold hover:bg-[#2A4A68]">
+          <button
+            type="submit"
+            className="bg-[#2c3e50] text-white p-2 rounded-md font-bold hover:bg-[#2A4A68]"
+          >
             Login
           </button>
         </form>
         <p className="text-center text-[#34495e] font-semibold">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <Link href="/signup" className="underline hover:opacity-80">
             Sign up
           </Link>
@@ -58,4 +64,3 @@ export default function Login() {
     </Layout>
   );
 }
-

@@ -61,7 +61,7 @@ export default function Signup() {
     if (!password) newErrors.password = "Field is required";
     if (password !== repeatPassword)
       newErrors.repeatPassword = "Passwords do not match";
-    setErrors(newErrors);
+    setErrors((prev) => ({ ...prev, ...newErrors }));
     if (Object.keys(newErrors).length === 0) {
       // TODO: add API call to create user
       console.log("Form is valid, create user API call should go here");
@@ -70,15 +70,15 @@ export default function Signup() {
 
   return (
     <Layout>
-      <section className="flex flex-col gap-4 items-center">
+      <section className="flex flex-col gap-4 items-center w-[95vw]">
         <FishlyLogo />
-        <h2 className="text-5xl font-semibold text-center text-[#2c3e50]">
-          Sign up
-        </h2>
         <form
           onSubmit={handleSubmit}
-          className="flex flex-col gap-4 bg-white p-4 rounded-md"
+          className="flex flex-col gap-4 bg-white p-4 rounded-md sm:w-[500px]"
         >
+          <h2 className="text-5xl font-semibold text-center text-[#2c3e50] pb-4">
+            Sign up
+          </h2>
           <div className="flex gap-4">
             <div className="flex flex-col gap-1 w-1/2">
               <input
@@ -205,4 +205,3 @@ export default function Signup() {
     </Layout>
   );
 }
-

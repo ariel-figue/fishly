@@ -16,7 +16,7 @@ export default function Home() {
           Welcome to Fishly
         </h2>
         <p className="text-center text-[#34495e] text-base">
-          Get started by logging in or creating an account
+          Fishly is an app to keep track of your catches and favorite fishing spots
         </p>
 
         <div className="flex flex-wrap justify-center gap-4 w-full sm:w-auto">

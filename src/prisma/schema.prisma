@@ -1,4 +1,3 @@
-// prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,6 +13,7 @@ model User {
   email          String    @unique
   name           String?
   passwordHash   String
+  avatar         String?   // Profile Picture URL
   createdAt      DateTime  @default(now())
   catches        Catch[]
   favoriteSpots  FavoriteLocation[]
@@ -22,6 +22,8 @@ model User {
   likes          Like[]
   notifications  Notification[]
   privacy        PrivacySettings?
+
+  @@map("users") // Custom table name (optional)
 }
 
 // 🎣 Fish Species Table
@@ -39,13 +41,15 @@ model FishSpecies {
 model Regulation {
   id         Int         @id @default(autoincrement())
   state      String
-  fishId     Int         @unique
+  fishId     Int         
   minSize    Float?
   maxSize    Float?
   bagLimit   Int?
   seasonStart DateTime?
   seasonEnd   DateTime?
-  fish       FishSpecies @relation(fields: [fishId], references: [id])
+  fish       FishSpecies @relation(fields: [fishId], references: [id], onDelete: Cascade)
+
+  @@index([state, fishId]) // Faster lookup by state & fish
 }
 
 // 📍 Fishing Location Table
@@ -66,14 +70,17 @@ model Catch {
   weight      Float?
   length      Float?
   imageUrl    String?
+  baitUsed    String?     // Added bait tracking
   timestamp   DateTime    @default(now())
   weatherId   Int?
   comments    Comment[]
   likes       Like[]
-  user        User        @relation(fields: [userId], references: [id])
-  species     FishSpecies @relation(fields: [speciesId], references: [id])
-  location    Location    @relation(fields: [locationId], references: [id])
-  weather     Weather?    @relation(fields: [weatherId], references: [id])
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  species     FishSpecies @relation(fields: [speciesId], references: [id], onDelete: Cascade)
+  location    Location    @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  weather     Weather?    @relation(fields: [weatherId], references: [id], onDelete: SetNull)
+
+  @@index([userId, speciesId]) // Optimized lookup for user catches
 }
 
 // ☁️ Weather Table (Conditions at Time of Catch)
@@ -83,7 +90,7 @@ model Weather {
   windSpeed   Float?
   humidity    Float?
   condition   String?
-  catch       Catch?
+  catch       Catch?    @relation(fields: [id], references: [weatherId])
 }
 
 // 📍 Favorite Fishing Locations Table
@@ -91,8 +98,8 @@ model FavoriteLocation {
   id         Int       @id @default(autoincrement())
   userId     Int
   locationId Int
-  user       User      @relation(fields: [userId], references: [id])
-  location   Location  @relation(fields: [locationId], references: [id])
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  location   Location  @relation(fields: [locationId], references: [id], onDelete: Cascade)
 }
 
 // 👥 Friendships Table (Friend Requests & Friends)
@@ -102,8 +109,11 @@ model Friendship {
   friendId  Int
   status    String  @default("pending") // accepted, pending, rejected
   createdAt DateTime @default(now())
-  user      User    @relation(fields: [userId], references: [id])
-  friend    User    @relation(fields: [friendId], references: [id])
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  friend    User    @relation(fields: [friendId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, friendId]) // Prevents duplicate friend entries
+  @@index([userId, friendId]) // Optimized lookup for mutual friends
 }
 
 // 💬 Comments on Catches
@@ -113,8 +123,8 @@ model Comment {
   catchId Int
   text    String
   createdAt DateTime @default(now())
-  user    User  @relation(fields: [userId], references: [id])
-  catch   Catch @relation(fields: [catchId], references: [id])
+  user    User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  catch   Catch @relation(fields: [catchId], references: [id], onDelete: Cascade)
 }
 
 // 👍 Likes on Catches
@@ -122,8 +132,8 @@ model Like {
   id      Int      @id @default(autoincrement())
   userId  Int
   catchId Int
-  user    User  @relation(fields: [userId], references: [id])
-  catch   Catch @relation(fields: [catchId], references: [id])
+  user    User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  catch   Catch @relation(fields: [catchId], references: [id], onDelete: Cascade)
 }
 
 // 🔔 Notifications Table
@@ -133,7 +143,7 @@ model Notification {
   message   String
   createdAt DateTime @default(now())
   read      Boolean  @default(false)
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 // 🔒 Privacy Settings
@@ -143,7 +153,7 @@ model PrivacySettings {
   profileView  String   @default("public") // public, friends-only, private
   catchView    String   @default("public") // public, friends-only, private
   friendList   String   @default("public") // public, private
-  user         User     @relation(fields: [userId], references: [id])
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 // 🔍 Audit Log Table (Tracks User Actions)
@@ -152,16 +162,16 @@ model AuditLog {
   userId    Int
   action    String
   timestamp DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// 🔑 OAuth Authentication (For Google, Facebook, etc.)
+// 🔑 OAuth Authentication (For Google, GitHub, etc.)
 model OAuthAccount {
   id            Int      @id @default(autoincrement())
   userId        Int
   provider      String
   providerId    String   @unique
-  accessToken   String
-  refreshToken  String?
-  user          User     @relation(fields: [userId], references: [id])
+  accessToken   String   @map("_accessToken") // Hidden field
+  refreshToken  String?  @map("_refreshToken") // Hidden field
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

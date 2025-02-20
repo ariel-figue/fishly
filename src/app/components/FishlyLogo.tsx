@@ -73,7 +73,7 @@ export default function FishlyLogo({ animated = false, handleNavigation }: Fishl
           position: fixed;
           top: 20%;
           left: -200px;
-          animation: swim 18s linear infinite;
+          animation: swim 9s linear infinite;
           width: 200px;
           height: 200px;
           cursor: pointer;

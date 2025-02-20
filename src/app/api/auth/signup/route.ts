@@ -2,25 +2,20 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
 export async function POST(req: Request) {
   try {
     const { firstName, lastName, email, username, password } = await req.json();
 
     if (!firstName || !lastName || !email || !username || !password) {
-      return NextResponse.json(
-        { error: "All fields are required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "All fields are required" }, { status: 400 });
     }
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-      return NextResponse.json(
-        { error: "User already exists" },
-        { status: 409 }
-      );
+      return NextResponse.json({ error: "User already exists" }, { status: 409 });
     }
 
     // Hash password securely
@@ -41,10 +36,7 @@ export async function POST(req: Request) {
     const secret = process.env.NEXTAUTH_SECRET;
     if (!secret) {
       console.error("NEXTAUTH_SECRET is missing from environment variables");
-      return NextResponse.json(
-        { error: "Internal Server Error" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 
     // Generate JWT Token with Expiry
@@ -70,7 +62,6 @@ export async function POST(req: Request) {
       { status: 201 }
     );
 
-    // Secure cookie settings (Prevents XSS & CSRF attacks)
     response.headers.set(
       "Set-Cookie",
       `token=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=3600`
@@ -78,18 +69,23 @@ export async function POST(req: Request) {
 
     return response;
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      console.error("Signup API Error:", error.message, error.stack);
-    } else {
-      console.error("Signup API Error:", error);
+    console.error("Signup API Error:", error);
+
+    // Handle known Prisma errors
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2002") {
+        return NextResponse.json({ error: "Username or email already exists" }, { status: 409 });
+      }
     }
-    
+
+    // Generic error message for unexpected issues
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "Failed to create an account. Please try again." },
       { status: 500 }
     );
   }
 }
+
 
 // Debugging route to check if the Signup API is working
 export async function GET() {

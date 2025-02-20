@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation"; 
+import { useRouter } from "next/navigation";
 import Layout from "../components/Layout";
 import FishlyLogo from "../components/FishlyLogo";
 import { signupUser } from "@/services/auth";
@@ -93,17 +93,17 @@ export default function Signup() {
       if (data?.user?.username) {
         handleNavigation(router, "/", setIsSigningUp);
       } else {
-        throw new Error("Unexpected response structure");
+        throw new Error(data?.error || "Unexpected response structure");
       }
     } catch (error) {
       console.error("Signup error:", error);
+
       setErrors((prev) => ({
         ...prev,
         apiError:
-          error instanceof Error
-            ? error.message
-            : "Failed to create an account. Please try again.",
+          error instanceof Error ? error.message : "An unknown error occurred.",
       }));
+
       setIsSigningUp(false);
     }
   };
@@ -121,8 +121,10 @@ export default function Signup() {
   return (
     <Layout>
       <section className="flex flex-col gap-4 items-center w-[95vw]">
-        <FishlyLogo handleNavigation={() => handleNavigation(router, "/", setIsSigningUp)} />
-        
+        <FishlyLogo
+          handleNavigation={() => handleNavigation(router, "/", setIsSigningUp)}
+        />
+
         <form
           onSubmit={handleSubmit}
           className="flex flex-col gap-4 bg-white p-4 rounded-md sm:w-[500px]"
@@ -133,17 +135,52 @@ export default function Signup() {
 
           {/* First Name & Last Name */}
           <div className="flex gap-4">
-            <InputField name="First name" value={firstName} setValue={setFirstName} error={errors.firstName} />
-            <InputField name="Last name" value={lastName} setValue={setLastName} error={errors.lastName} />
+            <InputField
+              name="First name"
+              value={firstName}
+              setValue={setFirstName}
+              error={errors.firstName}
+            />
+            <InputField
+              name="Last name"
+              value={lastName}
+              setValue={setLastName}
+              error={errors.lastName}
+            />
           </div>
 
           {/* Email & Username */}
-          <InputField name="Email" value={email} setValue={setEmail} error={errors.email} type="email" />
-          <InputField name="Username" value={username} setValue={setUsername} error={errors.username} />
+          <InputField
+            name="Email"
+            value={email}
+            setValue={setEmail}
+            error={errors.email}
+            type="email"
+          />
+          <InputField
+            name="Username"
+            value={username}
+            setValue={setUsername}
+            error={errors.username}
+          />
 
           {/* Password & Repeat Password */}
-          <PasswordInputField name="Password" value={password} setValue={setPassword} showPassword={showPassword} setShowPassword={setShowPassword} error={errors.password} />
-          <PasswordInputField name="Repeat password" value={repeatPassword} setValue={setRepeatPassword} showPassword={showRepeatPassword} setShowPassword={setShowRepeatPassword} error={errors.repeatPassword} />
+          <PasswordInputField
+            name="Password"
+            value={password}
+            setValue={setPassword}
+            showPassword={showPassword}
+            setShowPassword={setShowPassword}
+            error={errors.password}
+          />
+          <PasswordInputField
+            name="Repeat password"
+            value={repeatPassword}
+            setValue={setRepeatPassword}
+            showPassword={showRepeatPassword}
+            setShowPassword={setShowRepeatPassword}
+            error={errors.repeatPassword}
+          />
 
           {/* Submit Button */}
           <button
@@ -154,7 +191,11 @@ export default function Signup() {
           </button>
 
           {/* API Error Message */}
-          {errors.apiError && <div className="text-red-500 text-sm text-center">{errors.apiError}</div>}
+          {errors.apiError && (
+            <div className="text-red-500 text-sm text-center">
+              {errors.apiError}
+            </div>
+          )}
         </form>
 
         {/* Navigation to Login with 0.5s loader */}

@@ -5,10 +5,12 @@ Fishly is a fishing companion app built with Next.js, designed to provide real-t
 ## 🚀 Features (Planned & Available)
 
 ### ✅ Currently Available:
+
 - **User Login & Authentication** – Secure sign-in to personalize your fishing experience.
 - **Interactive Landing Page** – Explore the app's features with a clean and modern UI.
 
 ### 🔜 Upcoming Features:
+
 - **Real-Time Fishing Conditions** – Get live weather, tide, and moon phase data to optimize fishing trips.
 - **Catch Logging & History** – Track your catches, including species, location, and bait used.
 - **Location-Based Fishing Spots** – Discover top-rated fishing locations based on user data.
@@ -59,10 +61,37 @@ To set up the database:
    ```bash
    npx prisma migrate dev --name init
    ```
+4. View the database tables locally using Prisma Studio:
+   ```bash
+   npx prisma studio
+   ```
+5. Check the database schema:
+   ```bash
+   npx prisma db pull
+   ```
+6. Apply changes to the database:
+   ```bash
+   npx prisma db push
+   ```
+
+Fishly uses **Prisma** as the ORM and **Neon** for the PostgreSQL database.
+
+To set up the database:
+
+1. Ensure you have a Neon database instance.
+2. Configure the `.env` file with your Neon database URL:
+   ```env
+   DATABASE_URL="postgresql://yourusername:yourpassword@your-neon-db-instance-url/dbname"
+   ```
+3. Run database migrations:
+   ```bash
+   npx prisma migrate dev --name init
+   ```
 
 ## 📚 Learn More
 
 To learn more about the technologies used in Fishly, check out:
+
 - [Next.js Documentation](https://nextjs.org/docs) - Learn about Next.js features and API.
 - [Tailwind CSS](https://tailwindcss.com) - A utility-first CSS framework for styling.
 - [Prisma](https://www.prisma.io) - Modern ORM for working with databases.
@@ -74,9 +103,11 @@ To learn more about the technologies used in Fishly, check out:
 Fishly can be deployed using [Vercel](https://vercel.com/new) for seamless Next.js integration.
 
 To deploy manually:
+
 ```bash
 git push origin main
 ```
+
 Then, follow the deployment process on Vercel.
 
 ## 🤝 Contributing

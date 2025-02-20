@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "cross-env DATABASE_URL=$DATABASE_URL_DEV NODE_ENV=development next dev",
-    "build": "cross-env NODE_ENV=production next build",
+    "build": "prisma generate && cross-env NODE_ENV=production next build",
     "start": "cross-env DATABASE_URL=$DATABASE_URL_PRD NODE_ENV=production next start",
+    "postinstall": "prisma generate",
     "migrate:dev": "cross-env DATABASE_URL=$DATABASE_URL_DEV npx prisma migrate dev",
     "migrate:prod": "cross-env DATABASE_URL=$DATABASE_URL_PRD npx prisma migrate deploy"
   },

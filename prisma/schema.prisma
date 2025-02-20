@@ -8,17 +8,19 @@ datasource db {
 }
 
 model User {
-  id           Int      @id @default(autoincrement())
+  id           String   @id @default(uuid())
   email        String   @unique
-  name         String?
+  username     String   @unique
+  firstName    String?
+  lastName     String?
   passwordHash String
-  avatar       String? // Profile Picture URL
+  avatar       String? 
   createdAt    DateTime @default(now())
 
   catches       Catch[]
   favoriteSpots FavoriteLocation[]
-  friendships   Friendship[]       @relation(name: "UserFriendships")
-  friendOf      Friendship[]       @relation(name: "FriendUserFriendships")
+  friendships   Friendship[] @relation(name: "UserFriendships")
+  friendOf      Friendship[] @relation(name: "FriendUserFriendships")
   comments      Comment[]
   likes         Like[]
   notifications Notification[]
@@ -26,14 +28,14 @@ model User {
   auditLogs     AuditLog[]
   oauthAccounts OAuthAccount[]
 
-  @@map("users") // Custom table name (optional)
+  @@map("users")
 }
 
 // 🎣 Fish Species Table
 model FishSpecies {
-  id             Int          @id @default(autoincrement())
-  commonName     String       @unique
-  scientificName String       @unique
+  id             String @id @default(uuid())
+  commonName     String @unique
+  scientificName String @unique
   minSize        Float?
   maxSize        Float?
   bagLimit       Int?
@@ -41,11 +43,11 @@ model FishSpecies {
   catches        Catch[]
 }
 
-// 📜 Regulations Table (State-specific Fishing Rules)
+// 📜 Regulations Table
 model Regulation {
-  id          Int       @id @default(autoincrement())
+  id          String @id @default(uuid())
   state       String
-  fishId      Int
+  fishId      String // 🛠 Changed from Int to String
   minSize     Float?
   maxSize     Float?
   bagLimit    Int?
@@ -54,12 +56,12 @@ model Regulation {
 
   fish FishSpecies @relation(fields: [fishId], references: [id], onDelete: Cascade)
 
-  @@index([state, fishId]) // Faster lookup by state & fish
+  @@index([state, fishId])
 }
 
 // 📍 Fishing Location Table
 model Location {
-  id        Int                @id @default(autoincrement())
+  id        String @id @default(uuid())
   name      String
   latitude  Float
   longitude Float
@@ -69,10 +71,10 @@ model Location {
 
 // 🎣 Fish Catch Table
 model Catch {
-  id         Int      @id @default(autoincrement())
-  userId     Int
-  speciesId  Int
-  locationId Int
+  id         String @id @default(uuid())
+  userId     String // 🛠 Changed from Int to String
+  speciesId  String // 🛠 Changed from Int to String
+  locationId String // 🛠 Changed from Int to String
   weight     Float?
   length     Float?
   imageUrl   String?
@@ -83,7 +85,7 @@ model Catch {
   species  FishSpecies @relation(fields: [speciesId], references: [id], onDelete: Cascade)
   location Location    @relation(fields: [locationId], references: [id], onDelete: Cascade)
 
-  weather Weather? @relation(name: "CatchWeather") // ✅ Only Weather holds the reference
+  weather Weather? @relation(name: "CatchWeather")
 
   comments Comment[]
   likes    Like[]
@@ -91,49 +93,49 @@ model Catch {
   @@index([userId, speciesId])
 }
 
-// ☁️ Weather Table (Conditions at Time of Catch)
+// ☁️ Weather Table
 model Weather {
-  id      Int @id @default(autoincrement())
-  catchId Int @unique // Ensures one-to-one relationship ✅ FIXED
+  id      String @id @default(uuid())
+  catchId String @unique // 🛠 Changed from Int to String
 
   temperature Float?
   windSpeed   Float?
   humidity    Float?
   condition   String?
 
-  catch Catch @relation(name: "CatchWeather", fields: [catchId], references: [id], onDelete: Cascade) // ✅ Weather references Catch
+  catch Catch @relation(name: "CatchWeather", fields: [catchId], references: [id], onDelete: Cascade)
 }
 
 // 📍 Favorite Fishing Locations Table
 model FavoriteLocation {
-  id         Int @id @default(autoincrement())
-  userId     Int
-  locationId Int
+  id         String @id @default(uuid())
+  userId     String // 🛠 Changed from Int to String
+  locationId String // 🛠 Changed from Int to String
 
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   location Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
 }
 
-// 👥 Friendships Table (Friend Requests & Friends)
+// 👥 Friendships Table
 model Friendship {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  friendId  Int
-  status    String   @default("pending") // accepted, pending, rejected
+  id        String @id @default(uuid())
+  userId    String // 🛠 Changed from Int to String
+  friendId  String // 🛠 Changed from Int to String
+  status    String @default("pending")
   createdAt DateTime @default(now())
 
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade, name: "UserFriendships")
   friend User @relation(fields: [friendId], references: [id], onDelete: Cascade, name: "FriendUserFriendships")
 
-  @@unique([userId, friendId]) // Prevents duplicate friend entries
-  @@index([userId, friendId]) // Optimized lookup for mutual friends
+  @@unique([userId, friendId])
+  @@index([userId, friendId])
 }
 
 // 💬 Comments on Catches
 model Comment {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  catchId   Int
+  id        String @id @default(uuid())
+  userId    String // 🛠 Changed from Int to String
+  catchId   String // 🛠 Changed from Int to String
   text      String
   createdAt DateTime @default(now())
 
@@ -143,9 +145,9 @@ model Comment {
 
 // 👍 Likes on Catches
 model Like {
-  id      Int @id @default(autoincrement())
-  userId  Int
-  catchId Int
+  id      String @id @default(uuid())
+  userId  String // 🛠 Changed from Int to String
+  catchId String // 🛠 Changed from Int to String
 
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   catch Catch @relation(fields: [catchId], references: [id], onDelete: Cascade)
@@ -153,44 +155,44 @@ model Like {
 
 // 🔔 Notifications Table
 model Notification {
-  id        Int      @id @default(autoincrement())
-  userId    Int
+  id        String @id @default(uuid())
+  userId    String // 🛠 Changed from Int to String
   message   String
   createdAt DateTime @default(now())
-  read      Boolean  @default(false)
+  read      Boolean @default(false)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 // 🔒 Privacy Settings
 model PrivacySettings {
-  id          Int    @id @default(autoincrement())
-  userId      Int    @unique
-  profileView String @default("public") // public, friends-only, private
-  catchView   String @default("public") // public, friends-only, private
-  friendList  String @default("public") // public, private
+  id          String @id @default(uuid())
+  userId      String @unique // 🛠 Changed from Int to String
+  profileView String @default("public")
+  catchView   String @default("public")
+  friendList  String @default("public")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// 🔍 Audit Log Table (Tracks User Actions)
+// 🔍 Audit Log Table
 model AuditLog {
-  id        Int      @id @default(autoincrement())
-  userId    Int
+  id        String @id @default(uuid())
+  userId    String // 🛠 Changed from Int to String
   action    String
   timestamp DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// 🔑 OAuth Authentication (For Google, GitHub, etc.)
+// 🔑 OAuth Authentication
 model OAuthAccount {
-  id           Int     @id @default(autoincrement())
-  userId       Int
+  id           String @id @default(uuid())
+  userId       String // 🛠 Changed from Int to String
   provider     String
-  providerId   String  @unique
-  accessToken  String  @map("_accessToken") // Hidden field
-  refreshToken String? @map("_refreshToken") // Hidden field
+  providerId   String @unique
+  accessToken  String @map("_accessToken")
+  refreshToken String? @map("_refreshToken")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

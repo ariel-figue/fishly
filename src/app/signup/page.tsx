@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import Layout from "../components/Layout";
 import FishlyLogo from "../components/FishlyLogo";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { signupUser } from "@/services/auth";
 
 export default function Signup() {
   const [firstName, setFirstName] = useState("");
@@ -50,9 +51,11 @@ export default function Signup() {
       setErrors((prev) => ({ ...prev, repeatPassword: "" }));
   }, [password, repeatPassword]);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const newErrors: Record<string, string> = {};
+
+    // Validation checks
     if (!firstName) newErrors.firstName = "Field is required";
     if (!lastName) newErrors.lastName = "Field is required";
     const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -61,10 +64,34 @@ export default function Signup() {
     if (!password) newErrors.password = "Field is required";
     if (password !== repeatPassword)
       newErrors.repeatPassword = "Passwords do not match";
+
     setErrors((prev) => ({ ...prev, ...newErrors }));
-    if (Object.keys(newErrors).length === 0) {
-      // TODO: add API call to create user
-      console.log("Form is valid, create user API call should go here");
+
+    if (Object.keys(newErrors).length > 0) return;
+
+    try {
+      const data = await signupUser({
+        firstName,
+        lastName,
+        email,
+        username,
+        password,
+      });
+    
+      if (data?.username) {
+        window.location.href = "/dashboard";
+      } else {
+        throw new Error("Unexpected response structure");
+      }
+    } catch (error) {
+      console.error("Signup error:", error);
+      setErrors((prev) => ({
+        ...prev,
+        apiError:
+          error instanceof Error
+            ? error.message
+            : "Failed to create an account. Please try again.",
+      }));
     }
   };
 

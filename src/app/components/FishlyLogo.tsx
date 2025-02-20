@@ -16,16 +16,22 @@ export default function FishlyLogo({ animated = false }) {
     <div
       className={`fishly-logo ${animated ? "swim-container" : ""}`}
       style={{ cursor: animated ? "default" : "pointer" }}
-      onClick={animated ? undefined : () => {
-        window.location.href = "/";
-      }}
+      onClick={
+        animated
+          ? undefined
+          : () => {
+              window.location.href = "/";
+            }
+      }
     >
       <Image
         className="fish-image"
+        style={{ width: "auto", height: "auto" }}
         src="/fishly_logo_white_fill.png"
         alt="Fishly Logo"
-        width={200}
-        height={200}
+        width={175}
+        height={175}
+        priority
       />
       <style jsx>{`
         @keyframes swim {

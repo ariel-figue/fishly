@@ -1,5 +1,5 @@
 "use client";
-import Layout from "../components/Layout";
+
 import { useAuth } from "@/context/AuthProvider";
 import { useRouter } from "next/navigation";
 import { useState } from "react";

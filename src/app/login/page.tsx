@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Layout from "../components/Layout";
 import FishlyLogo from "../components/FishlyLogo";
 import Loader from "../components/Loader";
 import { loginUser } from "@/services/auth";

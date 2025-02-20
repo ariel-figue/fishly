@@ -96,6 +96,16 @@ export default function Login() {
 
           {errors.apiError && <div className="text-red-500 text-sm text-center">{errors.apiError}</div>}
         </form>
+        {/* Navigation to Login with 0.5s loader */}
+        <p className="text-center text-[#34495e] font-semibold">
+          Already have an account?{" "}
+          <button
+            onClick={() => handleNavigation(router, "/signup", setIsLoggingIn)}
+            className="underline hover:opacity-80 text-[#2c3e50]"
+          >
+            Sign up
+          </button>
+        </p>
       </section>
     </Layout>
   );

@@ -21,7 +21,6 @@ export async function signupUser({
     const data = await response.json();
 
     if (!response.ok) {
-      const data = await response.json();
       throw new Error(data.error || "Failed to sign up");
     }
 
@@ -57,7 +56,7 @@ export async function loginUser({
       if (!response.ok) {
         throw new Error(data.error || "Invalid email or password");
       }
-      
+
       const tokenExpiry = new Date(Date.now() + 60 * 60 * 1000);
       localStorage.setItem(
         "token",

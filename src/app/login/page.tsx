@@ -57,16 +57,14 @@ export default function Login() {
 
   if (isLoggingIn) {
     return (
-      <Layout>
         <div className="flex items-center justify-center min-h-screen">
           <Loader />
         </div>
-      </Layout>
     );
   }
 
   return (
-    <Layout>
+    <div>
       <section className="flex flex-col gap-4 items-center w-[95vw]">
         <FishlyLogo handleNavigation={() => handleNavigation(router, "/", setIsLoggingIn)} />
         <form
@@ -107,6 +105,6 @@ export default function Login() {
           </button>
         </p>
       </section>
-    </Layout>
+    </div>
   );
 }

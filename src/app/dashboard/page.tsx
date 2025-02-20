@@ -24,16 +24,14 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <Layout>
         <div className="flex items-center justify-center min-h-screen">
           <Loader />
         </div>
-      </Layout>
     );
   }
 
   return (
-    <Layout>
+    <div>
       <section className="flex flex-col gap-4 items-center">
         <h2 className="text-3xl font-semibold text-center text-[#2c3e50]">
           Dashboard
@@ -53,6 +51,6 @@ export default function Dashboard() {
           {isLoggingOut ? <Loader size={24} color="white" /> : "Logout"}
         </button>
       </section>
-    </Layout>
+    </div>
   );
 }

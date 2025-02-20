@@ -116,16 +116,14 @@ export default function Signup() {
 
   if (isSigningUp) {
     return (
-      <Layout>
         <div className="flex items-center justify-center min-h-screen">
           <Loader />
         </div>
-      </Layout>
     );
   }
 
   return (
-    <Layout>
+    <div>
       <section className="flex flex-col gap-4 items-center w-[95vw]">
         <FishlyLogo
           handleNavigation={() => handleNavigation(router, "/", setIsSigningUp)}
@@ -215,6 +213,6 @@ export default function Signup() {
           </button>
         </p>
       </section>
-    </Layout>
+    </div>
   );
 }

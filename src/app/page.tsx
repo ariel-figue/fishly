@@ -32,16 +32,14 @@ export default function Home() {
   
   if (loading || isNavigating || !authLoaded) {
     return (
-      <Layout>
         <div className="flex items-center justify-center min-h-screen">
           <Loader />
         </div>
-      </Layout>
     );
   }
 
   return (
-    <Layout>
+    <div>
       {user ? (
         <Dashboard /> 
       ) : (
@@ -71,6 +69,6 @@ export default function Home() {
         </section>
       )}
       <Analytics />
-    </Layout>
+    </div>
   );
 }

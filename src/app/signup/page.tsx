@@ -77,9 +77,9 @@ export default function Signup() {
         username,
         password,
       });
-    
-      if (data?.username) {
-        window.location.href = "/dashboard";
+      
+      if (data?.user?.username) {
+        window.location.href = "/";
       } else {
         throw new Error("Unexpected response structure");
       }

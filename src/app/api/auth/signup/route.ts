@@ -12,8 +12,6 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-
-    console.log("DATABASE_URL:", process.env.DATABASE_URL);
     
     // Check if user exists
     const existingUser = await prisma.user.findUnique({ where: { email } });

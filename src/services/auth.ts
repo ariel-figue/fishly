@@ -39,30 +39,34 @@ export async function signupUser({
 }
 
 export async function loginUser({
-  email,
-  password,
-}: {
-  email: string;
-  password: string;
-}) {
-  try {
-    const response = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || "Invalid email or password");
+    email,
+    password,
+  }: {
+    email: string;
+    password: string;
+  }) {
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(data.error || "Invalid email or password");
+      }
+      
+      const tokenExpiry = new Date(Date.now() + 60 * 60 * 1000);
+      localStorage.setItem(
+        "token",
+        JSON.stringify({ user: data.user, tokenExpiry })
+      );
+  
+      return data; 
+    } catch (error) {
+      console.error("Login error:", error);
+      throw new Error("Login failed. Please check your credentials and try again.");
     }
-
-    return data; // ✅ Return successful response data (e.g., JWT token)
-  } catch (error) {
-    console.error("Login error:", error);
-    throw new Error(
-      "Login failed. Please check your credentials and try again."
-    );
   }
-}

@@ -2,9 +2,16 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import Loader from "../components/Loader";
 
-export default function FishlyLogo({ animated = false }) {
+interface FishlyLogoProps {
+  animated?: boolean;
+  handleNavigation?: () => void; 
+}
+
+export default function FishlyLogo({ animated = false, handleNavigation }: FishlyLogoProps) {
   const [isMounted, setIsMounted] = useState(false);
+  const [isNavigating] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -13,26 +20,35 @@ export default function FishlyLogo({ animated = false }) {
   if (!isMounted) return null;
 
   return (
-    <div
-      className={`fishly-logo ${animated ? "swim-container" : ""}`}
-      style={{ cursor: animated ? "default" : "pointer" }}
-      onClick={
-        animated
-          ? undefined
-          : () => {
-              window.location.href = "/";
-            }
-      }
-    >
-      <Image
-        className="fish-image"
-        style={{ width: "auto", height: "auto" }}
-        src="/fishly_logo_white_fill.png"
-        alt="Fishly Logo"
-        width={175}
-        height={175}
-        priority
-      />
+    <div className="relative flex flex-col items-center">
+      {/* Loader Overlay - Appears When Navigating */}
+      {isNavigating && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 z-50">
+          <Loader />
+        </div>
+      )}
+
+      {/* Logo */}
+      <div
+        className={`fishly-logo ${animated ? "swim-container" : ""}`}
+        style={{ cursor: animated ? "default" : "pointer" }}
+        onClick={
+          animated
+            ? undefined
+            : () => handleNavigation && handleNavigation() // Uses passed function
+        }
+      >
+        <Image
+          className="fish-image"
+          style={{ width: "auto", height: "auto" }}
+          src="/fishly_logo_white_fill.png"
+          alt="Fishly Logo"
+          width={175}
+          height={175}
+          priority
+        />
+      </div>
+
       <style jsx>{`
         @keyframes swim {
           0% {

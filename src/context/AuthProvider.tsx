@@ -24,11 +24,11 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setTokenState] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true); // ✅ Added loading state
+  const [loading, setLoading] = useState(true);
 
-  // Load token from localStorage on mount
+  // 🔹 Sync state with localStorage changes
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    const loadUser = () => {
       const storedData = localStorage.getItem("token");
       if (storedData) {
         try {
@@ -40,14 +40,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           localStorage.removeItem("token"); // Remove invalid data
         }
       }
-    }
-    setLoading(false); // ✅ Finish loading once check is done
+      setLoading(false);
+    };
+
+    loadUser();
+
+    // 🔹 Listen for storage changes from other tabs/windows
+    window.addEventListener("storage", loadUser);
+
+    return () => {
+      window.removeEventListener("storage", loadUser);
+    };
   }, []);
 
-  // Ensure token is not removed immediately after setting
+  // 🔹 Ensure token updates state dynamically
   const setToken = (newToken: string | null, newUser: User | null = null) => {
     setTokenState(newToken);
-    if (newUser) setUser(newUser);
+    setUser(newUser);
 
     if (newToken && newUser) {
       localStorage.setItem("token", JSON.stringify({ token: newToken, user: newUser }));
@@ -55,14 +64,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem("token");
     }
 
-    setLoading(false); // ✅ Ensure UI updates properly after token is set
+    setLoading(false);
   };
 
   const logout = () => {
     setTokenState(null);
     setUser(null);
     localStorage.removeItem("token");
-    setLoading(false); // ✅ Ensure logout completes before UI update
+    setLoading(false);
   };
 
   return (

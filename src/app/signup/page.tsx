@@ -1,11 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation"; 
 import Layout from "../components/Layout";
 import FishlyLogo from "../components/FishlyLogo";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { signupUser } from "@/services/auth";
+import Loader from "../components/Loader";
+import { InputField, PasswordInputField } from "../components/InputFields";
+import { handleNavigation } from "../utils/navigation";
 
 export default function Signup() {
   const [firstName, setFirstName] = useState("");
@@ -16,6 +18,7 @@ export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const [repeatPassword, setRepeatPassword] = useState("");
   const [showRepeatPassword, setShowRepeatPassword] = useState(false);
+  const [isSigningUp, setIsSigningUp] = useState(false);
   const [errors, setErrors] = useState({
     firstName: "",
     lastName: "",
@@ -23,8 +26,12 @@ export default function Signup() {
     username: "",
     password: "",
     repeatPassword: "",
+    apiError: "",
   });
 
+  const router = useRouter();
+
+  // Input validation handlers
   useEffect(() => {
     if (firstName) setErrors((prev) => ({ ...prev, firstName: "" }));
   }, [firstName]);
@@ -53,6 +60,8 @@ export default function Signup() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setIsSigningUp(true);
+
     const newErrors: Record<string, string> = {};
 
     // Validation checks
@@ -67,7 +76,10 @@ export default function Signup() {
 
     setErrors((prev) => ({ ...prev, ...newErrors }));
 
-    if (Object.keys(newErrors).length > 0) return;
+    if (Object.keys(newErrors).length > 0) {
+      setIsSigningUp(false);
+      return;
+    }
 
     try {
       const data = await signupUser({
@@ -77,9 +89,9 @@ export default function Signup() {
         username,
         password,
       });
-      
+
       if (data?.user?.username) {
-        window.location.href = "/";
+        handleNavigation(router, "/", setIsSigningUp);
       } else {
         throw new Error("Unexpected response structure");
       }
@@ -92,13 +104,25 @@ export default function Signup() {
             ? error.message
             : "Failed to create an account. Please try again.",
       }));
+      setIsSigningUp(false);
     }
   };
+
+  if (isSigningUp) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader />
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
       <section className="flex flex-col gap-4 items-center w-[95vw]">
-        <FishlyLogo />
+        <FishlyLogo handleNavigation={() => handleNavigation(router, "/", setIsSigningUp)} />
+        
         <form
           onSubmit={handleSubmit}
           className="flex flex-col gap-4 bg-white p-4 rounded-md sm:w-[500px]"
@@ -106,127 +130,42 @@ export default function Signup() {
           <h2 className="text-5xl font-semibold text-center text-[#2c3e50] pb-4">
             Sign up
           </h2>
+
+          {/* First Name & Last Name */}
           <div className="flex gap-4">
-            <div className="flex flex-col gap-1 w-1/2">
-              <input
-                type="text"
-                placeholder="First name"
-                value={firstName}
-                onChange={(event) => setFirstName(event.target.value)}
-                className={`border p-2 rounded-md w-full placeholder:text-[#4c4c4c] border-gray-300 font-semibold ${
-                  errors.firstName ? "border-red-500" : ""
-                }`}
-              />
-              {errors.firstName && (
-                <div className="text-red-500 text-xs">{errors.firstName}</div>
-              )}
-            </div>
-            <div className="flex flex-col gap-1 w-1/2">
-              <input
-                type="text"
-                placeholder="Last name"
-                value={lastName}
-                onChange={(event) => setLastName(event.target.value)}
-                className={`border p-2 rounded-md w-full placeholder:text-[#4c4c4c] border-gray-300 font-semibold ${
-                  errors.lastName ? "border-red-500" : ""
-                }`}
-              />
-              {errors.lastName && (
-                <div className="text-red-500 text-xs">{errors.lastName}</div>
-              )}
-            </div>
-          </div>
-          <div className="flex flex-col gap-1">
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              className={`border p-2 rounded-md placeholder:text-[#4c4c4c] border-gray-300 font-semibold ${
-                errors.email ? "border-red-500" : ""
-              }`}
-            />
-            {errors.email && (
-              <div className="text-red-500 text-xs">{errors.email}</div>
-            )}
-          </div>
-          <div className="flex flex-col gap-1">
-            <input
-              type="text"
-              placeholder="Username"
-              value={username}
-              onChange={(event) => setUsername(event.target.value)}
-              className={`border p-2 rounded-md placeholder:text-[#4c4c4c] border-gray-300 font-semibold ${
-                errors.username ? "border-red-500" : ""
-              }`}
-            />
-            {errors.username && (
-              <div className="text-red-500 text-xs">{errors.username}</div>
-            )}
-          </div>
-          <div className="flex flex-col gap-1 relative">
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                placeholder="Password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                className={`border p-2 rounded-md placeholder:text-[#4c4c4c] border-gray-300 w-full min-h-[40px] font-semibold ${
-                  errors.password ? "border-red-500" : ""
-                }`}
-              />
-              <button
-                type="button"
-                className="absolute top-1/2 right-2 transform -translate-y-1/2 text-[#2c3e50] hover:opacity-75 flex"
-                style={{ fontSize: "1.5rem" }}
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
-              </button>
-            </div>
-            {errors.password && (
-              <div className="text-red-500 text-xs">{errors.password}</div>
-            )}
-          </div>
-          <div className="flex flex-col gap-1 relative">
-            <div className="relative">
-              <input
-                type={showRepeatPassword ? "text" : "password"}
-                placeholder="Repeat password"
-                value={repeatPassword}
-                onChange={(event) => setRepeatPassword(event.target.value)}
-                className={`border p-2 rounded-md placeholder:text-[#4c4c4c] border-gray-300 w-full min-h-[40px] font-semibold ${
-                  errors.repeatPassword ? "border-red-500" : ""
-                }`}
-              />
-              <button
-                type="button"
-                className="absolute top-1/2 right-2 transform -translate-y-1/2 text-[#2c3e50] hover:opacity-75 flex"
-                style={{ fontSize: "1.5rem" }}
-                onClick={() => setShowRepeatPassword(!showRepeatPassword)}
-              >
-                {showRepeatPassword ? <FaEyeSlash /> : <FaEye />}
-              </button>
-            </div>
-            {errors.repeatPassword && (
-              <div className="text-red-500 text-xs">
-                {errors.repeatPassword}
-              </div>
-            )}
+            <InputField name="First name" value={firstName} setValue={setFirstName} error={errors.firstName} />
+            <InputField name="Last name" value={lastName} setValue={setLastName} error={errors.lastName} />
           </div>
 
+          {/* Email & Username */}
+          <InputField name="Email" value={email} setValue={setEmail} error={errors.email} type="email" />
+          <InputField name="Username" value={username} setValue={setUsername} error={errors.username} />
+
+          {/* Password & Repeat Password */}
+          <PasswordInputField name="Password" value={password} setValue={setPassword} showPassword={showPassword} setShowPassword={setShowPassword} error={errors.password} />
+          <PasswordInputField name="Repeat password" value={repeatPassword} setValue={setRepeatPassword} showPassword={showRepeatPassword} setShowPassword={setShowRepeatPassword} error={errors.repeatPassword} />
+
+          {/* Submit Button */}
           <button
             type="submit"
             className="bg-[#2c3e50] text-white p-2 rounded-md font-bold hover:bg-[#2A4A68]"
           >
             Sign up
           </button>
+
+          {/* API Error Message */}
+          {errors.apiError && <div className="text-red-500 text-sm text-center">{errors.apiError}</div>}
         </form>
+
+        {/* Navigation to Login with 0.5s loader */}
         <p className="text-center text-[#34495e] font-semibold">
           Already have an account?{" "}
-          <Link href="/login" className="underline hover:opacity-80">
-            Login
-          </Link>
+          <button
+            onClick={() => handleNavigation(router, "/login", setIsSigningUp)}
+            className="underline hover:opacity-80 text-[#2c3e50]"
+          >
+            Log in
+          </button>
         </p>
       </section>
     </Layout>

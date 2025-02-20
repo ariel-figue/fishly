@@ -6,7 +6,7 @@ import { useState } from "react";
 import Loader from "../components/Loader"; // Import the Loader component
 
 export default function Dashboard() {
-  const { user, logout } = useAuth();
+  const { user, logout, loading } = useAuth(); // Access loading state from useAuth
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -21,6 +21,16 @@ export default function Dashboard() {
       handleLogout();
     }, 1000); // Show loader for 1 second before logging out
   };
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader />
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -37,7 +47,6 @@ export default function Dashboard() {
         <button
           onClick={initiateLogout}
           className="bg-[#2c3e50] text-white px-4 py-2 rounded-md font-medium hover:bg-[#34495e] transition flex items-center justify-center w-[100px]"
-
         >
           {isLoggingOut ? <Loader size={24} color="white" /> : "Logout"}
         </button>
@@ -45,3 +54,4 @@ export default function Dashboard() {
     </Layout>
   );
 }
+

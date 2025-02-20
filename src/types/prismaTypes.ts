@@ -8,7 +8,10 @@ import { Prisma } from "@prisma/client";
 
 // 🧑‍💻 User Interface
 export type IUser = Prisma.UserGetPayload<{
-  include: {
+  select: {
+    id: true;
+    email: true;
+    username: true;
     catches: true;
     favoriteSpots: true;
     friendships: true;
@@ -24,17 +27,18 @@ export type IUser = Prisma.UserGetPayload<{
 
 // 🎣 Fish Species Interface
 export type IFishSpecies = Prisma.FishSpeciesGetPayload<{
-  include: { catches: true };
+  select: { id: true; name: true; catches: true };
 }>;
 
 // 📍 Fishing Location Interface
 export type ILocation = Prisma.LocationGetPayload<{
-  include: { catches: true; favorites: true };
+  select: { id: true; name: true; catches: true; favorites: true };
 }>;
 
 // 🎣 Fish Catch Interface
 export type ICatch = Prisma.CatchGetPayload<{
-  include: {
+  select: {
+    id: true;
     user: true;
     species: true;
     location: true;
@@ -46,45 +50,45 @@ export type ICatch = Prisma.CatchGetPayload<{
 
 // ☁️ Weather Interface
 export type IWeather = Prisma.WeatherGetPayload<{
-  include: { catch: true };
+  select: { id: true; conditions: true; catch: true };
 }>;
 
 // 📍 Favorite Fishing Locations Interface
 export type IFavoriteLocation = Prisma.FavoriteLocationGetPayload<{
-  include: { user: true; location: true };
+  select: { id: true; user: true; location: true };
 }>;
 
 // 👥 Friendships Interface
 export type IFriendship = Prisma.FriendshipGetPayload<{
-  include: { user: true; friend: true };
+  select: { id: true; user: true; friend: true };
 }>;
 
 // 💬 Comments Interface
 export type IComment = Prisma.CommentGetPayload<{
-  include: { user: true; catch: true };
+  select: { id: true; content: true; user: true; catch: true };
 }>;
 
 // 👍 Likes Interface
 export type ILike = Prisma.LikeGetPayload<{
-  include: { user: true; catch: true };
+  select: { id: true; user: true; catch: true };
 }>;
 
 // 🔔 Notifications Interface
 export type INotification = Prisma.NotificationGetPayload<{
-  include: { user: true };
+  select: { id: true; message: true; user: true };
 }>;
 
 // 🔒 Privacy Settings Interface
 export type IPrivacySettings = Prisma.PrivacySettingsGetPayload<{
-  include: { user: true };
+  select: { id: true; user: true };
 }>;
 
 // 🔍 Audit Log Interface
 export type IAuditLog = Prisma.AuditLogGetPayload<{
-  include: { user: true };
+  select: { id: true; action: true; user: true };
 }>;
 
 // 🔑 OAuth Authentication Interface
 export type IOAuthAccount = Prisma.OAuthAccountGetPayload<{
-  include: { user: true };
+  select: { id: true; provider: true; user: true };
 }>;

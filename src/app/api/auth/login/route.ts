@@ -30,17 +30,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 
-    // Generate JWT Token with `iat` and `exp`
+    // Generate JWT Token
     const token = jwt.sign(
       { id: user.id, email: user.email, username: user.username },
       secret,
       { expiresIn: "1h" }
     );
 
-    // Securely set JWT as an HttpOnly Cookie (Best Practice)
+    // Create response with token in JSON body
     const response = NextResponse.json(
       {
         message: "Login successful",
+        token,
         user: {
           avatar: user.avatar,
           email: user.email,
@@ -53,7 +54,7 @@ export async function POST(req: Request) {
       { status: 200 }
     );
 
-    // Set cookie with `HttpOnly`, `Secure`, `SameSite=Strict`
+    // Also set token in HttpOnly cookie (optional)
     response.headers.set(
       "Set-Cookie",
       `token=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=3600`

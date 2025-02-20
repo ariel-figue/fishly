@@ -46,10 +46,11 @@ export async function POST(req: Request) {
       { expiresIn: "1h" }
     );
 
-    // Securely set JWT as an HttpOnly Cookie
+    // Return both `token` and `user` in JSON response
     const response = NextResponse.json(
       {
         message: "User created successfully",
+        token, // ✅ Now returning token
         user: {
           avatar: newUser.avatar,
           email: newUser.email,
@@ -78,19 +79,9 @@ export async function POST(req: Request) {
       }
     }
 
-    // Generic error message for unexpected issues
     return NextResponse.json(
       { error: "Failed to create an account. Please try again." },
       { status: 500 }
     );
   }
-}
-
-
-// Debugging route to check if the Signup API is working
-export async function GET() {
-  return NextResponse.json(
-    { message: "Signup API is working" },
-    { status: 200 }
-  );
 }

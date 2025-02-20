@@ -57,15 +57,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const setToken = (newToken: string | null, newUser: User | null = null) => {
     setTokenState(newToken);
     setUser(newUser);
-
+  
     if (newToken && newUser) {
       localStorage.setItem("token", JSON.stringify({ token: newToken, user: newUser }));
     } else {
       localStorage.removeItem("token");
     }
-
+  
     setLoading(false);
   };
+  
 
   const logout = () => {
     setTokenState(null);

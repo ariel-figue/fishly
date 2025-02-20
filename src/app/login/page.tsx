@@ -39,7 +39,7 @@ export default function Login() {
     try {
       const data = await loginUser({ email, password });
 
-      if (data?.user?.username) {
+      if (data?.user) {
         setToken(data.token, data.user);
         handleNavigation(router, "/", setIsLoggingIn);
       } else {

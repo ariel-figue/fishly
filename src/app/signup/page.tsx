@@ -8,8 +8,10 @@ import { signupUser } from "@/services/auth";
 import Loader from "../components/Loader";
 import { InputField, PasswordInputField } from "../components/InputFields";
 import { handleNavigation } from "../utils/navigation";
+import { useAuth } from "@/context/AuthProvider";
 
 export default function Signup() {
+  const { setToken } = useAuth();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -91,6 +93,10 @@ export default function Signup() {
       });
 
       if (data?.user?.username) {
+        // ✅ Store authentication token & user info
+        setToken(data.token, data.user);
+
+        // ✅ Redirect to home page with a loading state
         handleNavigation(router, "/", setIsSigningUp);
       } else {
         throw new Error(data?.error || "Unexpected response structure");

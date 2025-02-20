@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
@@ -12,8 +13,8 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    
-    // Check if user exists
+
+    // Check if user already exists
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       return NextResponse.json(
@@ -22,10 +23,10 @@ export async function POST(req: Request) {
       );
     }
 
-    // Hash password
+    // Hash password securely
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
+    // Create user in the database
     const newUser = await prisma.user.create({
       data: {
         email,
@@ -36,7 +37,25 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json(
+    // Ensure NEXTAUTH_SECRET is available
+    const secret = process.env.NEXTAUTH_SECRET;
+    if (!secret) {
+      console.error("NEXTAUTH_SECRET is missing from environment variables");
+      return NextResponse.json(
+        { error: "Internal Server Error" },
+        { status: 500 }
+      );
+    }
+
+    // Generate JWT Token with Expiry
+    const token = jwt.sign(
+      { id: newUser.id, email: newUser.email, username: newUser.username },
+      secret,
+      { expiresIn: "1h" }
+    );
+
+    // Securely set JWT as an HttpOnly Cookie
+    const response = NextResponse.json(
       {
         message: "User created successfully",
         user: {
@@ -50,13 +69,16 @@ export async function POST(req: Request) {
       },
       { status: 201 }
     );
-  } catch (error) {
-    if (error instanceof Error) {
-      console.error("Signup API Error:", error.message);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
 
-    console.error("Unknown Signup API Error:", error);
+    // Secure cookie settings (Prevents XSS & CSRF attacks)
+    response.headers.set(
+      "Set-Cookie",
+      `token=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=3600`
+    );
+
+    return response;
+  } catch (error) {
+    console.error("Signup API Error:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }
@@ -64,6 +86,7 @@ export async function POST(req: Request) {
   }
 }
 
+// Debugging route to check if the Signup API is working
 export async function GET() {
   return NextResponse.json(
     { message: "Signup API is working" },

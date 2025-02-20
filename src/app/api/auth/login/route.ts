@@ -23,17 +23,24 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
     }
 
-    // Generate JWT Token (Fix: Ensure secret is provided)
+    // Use `NEXTAUTH_SECRET` for compatibility with NextAuth.js
+    const secret = process.env.NEXTAUTH_SECRET;
+    if (!secret) {
+      console.error("NEXTAUTH_SECRET is missing in environment variables");
+      return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    }
+
+    // Generate JWT Token with `iat` and `exp`
     const token = jwt.sign(
       { id: user.id, email: user.email, username: user.username },
-      process.env.NEXTAUTH_SECRET as string, // Ensure NEXTAUTH_SECRET is used
+      secret,
       { expiresIn: "1h" }
     );
 
-    return NextResponse.json(
-      { 
-        message: "Login successful", 
-        token, 
+    // Securely set JWT as an HttpOnly Cookie (Best Practice)
+    const response = NextResponse.json(
+      {
+        message: "Login successful",
         user: {
           avatar: user.avatar,
           email: user.email,
@@ -41,10 +48,18 @@ export async function POST(req: Request) {
           id: user.id,
           lastName: user.lastName,
           username: user.username,
-        }
+        },
       },
       { status: 200 }
     );
+
+    // Set cookie with `HttpOnly`, `Secure`, `SameSite=Strict`
+    response.headers.set(
+      "Set-Cookie",
+      `token=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=3600`
+    );
+
+    return response;
   } catch (error) {
     console.error("Login API Error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

@@ -1,94 +1,112 @@
 // src/types/prismaTypes.ts
-import { Prisma } from "@prisma/client";
 
 /**
- * Extending Prisma Models with TypeScript Interfaces
+ * Extending Models with TypeScript Interfaces
  * Provides strongly-typed interfaces for use across the Next.js app.
  */
 
 // 🧑‍💻 User Interface
-export type IUser = Prisma.UserGetPayload<{
-  select: {
-    id: true;
-    email: true;
-    username: true;
-    catches: true;
-    favoriteSpots: true;
-    friendships: true;
-    friendOf: true;
-    comments: true;
-    likes: true;
-    notifications: true;
-    privacy: true;
-    auditLogs: true;
-    oauthAccounts: true;
-  };
-}>;
+export interface IUser {
+  id: string;
+  email: string;
+  username: string;
+  catches?: ICatch[];
+  favoriteSpots?: ILocation[];
+  friendships?: IFriendship[];
+  friendOf?: IFriendship[];
+  comments?: IComment[];
+  likes?: ILike[];
+  notifications?: INotification[];
+  privacy?: IPrivacySettings;
+  auditLogs?: IAuditLog[];
+  oauthAccounts?: IOAuthAccount[];
+}
 
 // 🎣 Fish Species Interface
-export type IFishSpecies = Prisma.FishSpeciesGetPayload<{
-  select: { id: true; name: true; catches: true };
-}>;
+export interface IFishSpecies {
+  id: string;
+  name: string;
+  catches?: ICatch[];
+}
 
 // 📍 Fishing Location Interface
-export type ILocation = Prisma.LocationGetPayload<{
-  select: { id: true; name: true; catches: true; favorites: true };
-}>;
+export interface ILocation {
+  id: string;
+  name: string;
+  catches?: ICatch[];
+  favorites?: IFavoriteLocation[];
+}
 
 // 🎣 Fish Catch Interface
-export type ICatch = Prisma.CatchGetPayload<{
-  select: {
-    id: true;
-    user: true;
-    species: true;
-    location: true;
-    weather: true;
-    comments: true;
-    likes: true;
-  };
-}>;
+export interface ICatch {
+  id: string;
+  user: IUser;
+  species: IFishSpecies;
+  location?: ILocation;
+  weather?: IWeather;
+  comments?: IComment[];
+  likes?: ILike[];
+}
 
 // ☁️ Weather Interface
-export type IWeather = Prisma.WeatherGetPayload<{
-  select: { id: true; conditions: true; catch: true };
-}>;
+export interface IWeather {
+  id: string;
+  conditions: string;
+  catch?: ICatch;
+}
 
 // 📍 Favorite Fishing Locations Interface
-export type IFavoriteLocation = Prisma.FavoriteLocationGetPayload<{
-  select: { id: true; user: true; location: true };
-}>;
+export interface IFavoriteLocation {
+  id: string;
+  user: IUser;
+  location: ILocation;
+}
 
 // 👥 Friendships Interface
-export type IFriendship = Prisma.FriendshipGetPayload<{
-  select: { id: true; user: true; friend: true };
-}>;
+export interface IFriendship {
+  id: string;
+  user: IUser;
+  friend: IUser;
+}
 
 // 💬 Comments Interface
-export type IComment = Prisma.CommentGetPayload<{
-  select: { id: true; content: true; user: true; catch: true };
-}>;
+export interface IComment {
+  id: string;
+  content: string;
+  user: IUser;
+  catch?: ICatch;
+}
 
 // 👍 Likes Interface
-export type ILike = Prisma.LikeGetPayload<{
-  select: { id: true; user: true; catch: true };
-}>;
+export interface ILike {
+  id: string;
+  user: IUser;
+  catch?: ICatch;
+}
 
 // 🔔 Notifications Interface
-export type INotification = Prisma.NotificationGetPayload<{
-  select: { id: true; message: true; user: true };
-}>;
+export interface INotification {
+  id: string;
+  message: string;
+  user: IUser;
+}
 
 // 🔒 Privacy Settings Interface
-export type IPrivacySettings = Prisma.PrivacySettingsGetPayload<{
-  select: { id: true; user: true };
-}>;
+export interface IPrivacySettings {
+  id: string;
+  user: IUser;
+}
 
 // 🔍 Audit Log Interface
-export type IAuditLog = Prisma.AuditLogGetPayload<{
-  select: { id: true; action: true; user: true };
-}>;
+export interface IAuditLog {
+  id: string;
+  action: string;
+  user: IUser;
+}
 
 // 🔑 OAuth Authentication Interface
-export type IOAuthAccount = Prisma.OAuthAccountGetPayload<{
-  select: { id: true; provider: true; user: true };
-}>;
+export interface IOAuthAccount {
+  id: string;
+  provider: string;
+  user: IUser;
+}

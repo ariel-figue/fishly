@@ -41,7 +41,9 @@ export default function Dashboard() {
         <p className="text-center text-base">
           Welcome to your Fishly dashboard, {user?.username}!
         </p>
-        <p>🚧 This page and other features are under construction 🚧</p>
+        <p className="text-center text-base">
+          🚧 This page and other features are under construction 🚧
+        </p>
 
         {/* Logout Button */}
         <button
@@ -54,4 +56,3 @@ export default function Dashboard() {
     </Layout>
   );
 }
-

@@ -3,7 +3,6 @@
 import { Analytics } from "@vercel/analytics/react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Layout from "./components/Layout";
 import FishlyLogo from "./components/FishlyLogo";
 import Dashboard from "./dashboard/page"; 
 import { useAuth } from "@/context/AuthProvider";

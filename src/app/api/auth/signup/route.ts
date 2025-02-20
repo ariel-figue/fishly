@@ -77,8 +77,13 @@ export async function POST(req: Request) {
     );
 
     return response;
-  } catch (error) {
-    console.error("Signup API Error:", error);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error("Signup API Error:", error.message, error.stack);
+    } else {
+      console.error("Signup API Error:", error);
+    }
+    
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }

@@ -5,7 +5,7 @@ export default function Dashboard() {
   const { user } = useAuth(); // Access loading state from useAuth
 
   return (
-    <section className="flex flex-col gap-4 items-center w-3/4">
+    <section className="flex flex-col gap-4">
       <h2 className="text-3xl font-semibold text-center text-[#2c3e50]">
         Dashboard
       </h2>

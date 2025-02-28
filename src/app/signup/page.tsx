@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import FishlyLogo from "../components/FishlyLogo";
 import { signupUser } from "@/services/auth";
@@ -8,116 +8,96 @@ import Loader from "../components/Loader";
 import { InputField, PasswordInputField } from "../components/InputFields";
 import { handleNavigation } from "../utils/navigation";
 import { useAuth } from "@/context/AuthProvider";
+import { useAuthRedirect } from "../utils/useAuthRedirect";
 
 export default function Signup() {
+  useAuthRedirect(); // Redirect logged-in users to dashboard early
+
   const { setToken } = useAuth();
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [repeatPassword, setRepeatPassword] = useState("");
-  const [showRepeatPassword, setShowRepeatPassword] = useState(false);
-  const [isSigningUp, setIsSigningUp] = useState(false);
-  const [errors, setErrors] = useState({
+  const router = useRouter();
+
+  // Form State
+  const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     username: "",
     password: "",
     repeatPassword: "",
-    apiError: "",
   });
 
-  const router = useRouter();
-
-  // Input validation handlers
-  useEffect(() => {
-    if (firstName) setErrors((prev) => ({ ...prev, firstName: "" }));
-  }, [firstName]);
-
-  useEffect(() => {
-    if (lastName) setErrors((prev) => ({ ...prev, lastName: "" }));
-  }, [lastName]);
+  // Error State
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showRepeatPassword, setShowRepeatPassword] = useState(false);
 
   useEffect(() => {
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+  });
+
+  // Input Handler
+  const handleChange =
+    (name: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
+      setFormData((prev) => ({ ...prev, [name]: event.target.value }));
+      setErrors((prev) => ({ ...prev, [name]: "" })); // Clear errors on change
+    };
+
+  // Reusable Validation Function
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
     const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (emailRegex.test(email)) setErrors((prev) => ({ ...prev, email: "" }));
-  }, [email]);
 
-  useEffect(() => {
-    if (username) setErrors((prev) => ({ ...prev, username: "" }));
-  }, [username]);
+    if (!formData.firstName) newErrors.firstName = "Field is required";
+    if (!formData.lastName) newErrors.lastName = "Field is required";
+    if (!emailRegex.test(formData.email))
+      newErrors.email = "Invalid email address";
+    if (!formData.username) newErrors.username = "Field is required";
+    if (!formData.password) newErrors.password = "Field is required";
+    if (formData.password !== formData.repeatPassword)
+      newErrors.repeatPassword = "Passwords do not match";
 
-  useEffect(() => {
-    if (password) setErrors((prev) => ({ ...prev, password: "" }));
-  }, [password]);
-
-  useEffect(() => {
-    if (password === repeatPassword)
-      setErrors((prev) => ({ ...prev, repeatPassword: "" }));
-  }, [password, repeatPassword]);
+    return newErrors;
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setIsSigningUp(true);
+    setIsLoading(true);
 
-    const newErrors: Record<string, string> = {};
-
-    // Validation checks
-    if (!firstName) newErrors.firstName = "Field is required";
-    if (!lastName) newErrors.lastName = "Field is required";
-    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!emailRegex.test(email)) newErrors.email = "Invalid email address";
-    if (!username) newErrors.username = "Field is required";
-    if (!password) newErrors.password = "Field is required";
-    if (password !== repeatPassword)
-      newErrors.repeatPassword = "Passwords do not match";
-
-    setErrors((prev) => ({ ...prev, ...newErrors }));
-
+    // Run validation
+    const newErrors = validateForm();
     if (Object.keys(newErrors).length > 0) {
-      setIsSigningUp(false);
+      setErrors(newErrors);
+      setIsLoading(false);
       return;
     }
 
     try {
-      const data = await signupUser({
-        firstName,
-        lastName,
-        email,
-        username,
-        password,
-      });
+      const data = await signupUser(formData);
 
       if (data?.user?.username) {
-        // ✅ Store authentication token & user info
         setToken(data.token, data.user);
-
-        // ✅ Redirect to home page with a loading state
-        handleNavigation(router, "/", setIsSigningUp);
+        handleNavigation(router, "/dashboard", setIsLoading);
       } else {
         throw new Error(data?.error || "Unexpected response structure");
       }
     } catch (error) {
       console.error("Signup error:", error);
-
-      setErrors((prev) => ({
-        ...prev,
+      setErrors({
         apiError:
           error instanceof Error ? error.message : "An unknown error occurred.",
-      }));
-
-      setIsSigningUp(false);
+      });
+      setIsLoading(false);
     }
   };
 
-  if (isSigningUp) {
+  if (isLoading) {
     return (
-        <div className="flex items-center justify-center min-h-screen">
-          <Loader />
-        </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader />
+      </div>
     );
   }
 
@@ -125,7 +105,7 @@ export default function Signup() {
     <div>
       <section className="flex flex-col gap-4 items-center w-[95vw]">
         <FishlyLogo
-          handleNavigation={() => handleNavigation(router, "/", setIsSigningUp)}
+          handleNavigation={() => handleNavigation(router, "/", setIsLoading)}
         />
 
         <form
@@ -139,47 +119,47 @@ export default function Signup() {
           {/* First Name & Last Name */}
           <div className="flex gap-4">
             <InputField
-              name="First name"
-              value={firstName}
-              setValue={setFirstName}
+              name="firstName"
+              value={formData.firstName}
+              setValue={handleChange}
               error={errors.firstName}
             />
             <InputField
-              name="Last name"
-              value={lastName}
-              setValue={setLastName}
+              name="lastName"
+              value={formData.lastName}
+              setValue={handleChange}
               error={errors.lastName}
             />
           </div>
 
           {/* Email & Username */}
           <InputField
-            name="Email"
-            value={email}
-            setValue={setEmail}
-            error={errors.email}
+            name="email"
             type="email"
+            value={formData.email}
+            setValue={handleChange}
+            error={errors.email}
           />
           <InputField
-            name="Username"
-            value={username}
-            setValue={setUsername}
+            name="username"
+            value={formData.username}
+            setValue={handleChange}
             error={errors.username}
           />
 
           {/* Password & Repeat Password */}
           <PasswordInputField
-            name="Password"
-            value={password}
-            setValue={setPassword}
+            name="password"
+            value={formData.password}
+            setValue={handleChange}
             showPassword={showPassword}
             setShowPassword={setShowPassword}
             error={errors.password}
           />
           <PasswordInputField
-            name="Repeat password"
-            value={repeatPassword}
-            setValue={setRepeatPassword}
+            name="repeatPassword"
+            value={formData.repeatPassword}
+            setValue={handleChange}
             showPassword={showRepeatPassword}
             setShowPassword={setShowRepeatPassword}
             error={errors.repeatPassword}
@@ -201,11 +181,11 @@ export default function Signup() {
           )}
         </form>
 
-        {/* Navigation to Login with 0.5s loader */}
+        {/* Navigation to Login */}
         <p className="text-center text-[#34495e] font-semibold">
           Already have an account?{" "}
           <button
-            onClick={() => handleNavigation(router, "/login", setIsSigningUp)}
+            onClick={() => handleNavigation(router, "/login", setIsLoading)}
             className="underline hover:opacity-80 text-[#2c3e50]"
           >
             Log in

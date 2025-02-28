@@ -3,7 +3,8 @@
 import { useAuth } from "@/context/AuthProvider";
 import { useRouter } from "next/navigation";
 import { JSX, useState } from "react";
-import { IoMdHome, IoMdMap, IoMdCloud, IoMdLogOut } from "react-icons/io"; // Import icons
+import { IoMdMap, IoMdCloud, IoMdLogOut } from "react-icons/io"; // Import icons
+import { GiFishingPole } from "react-icons/gi";
 import Loader from "./Loader";
 
 interface SidePaneItem {
@@ -69,7 +70,7 @@ const SidePane = () => {
             </button>
           </li>
           <li className={liClass}>
-            <IoMdHome size={24} className="shrink-0" />
+            <GiFishingPole size={24} className="shrink-0" />
             <button
               onClick={handleCatchesClick}
               className="pl-8 w-full text-left flex items-center font-medium"
@@ -102,7 +103,7 @@ const SidePane = () => {
         />
         <SidePaneItemComponent
           label="Catches"
-          icon={<IoMdHome size={24} />}
+          icon={<GiFishingPole size={24} />}
           onClick={handleCatchesClick}
         />
         <SidePaneItemComponent

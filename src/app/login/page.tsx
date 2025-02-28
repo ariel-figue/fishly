@@ -58,7 +58,7 @@ export default function Login() {
 
       if (data?.user) {
         setToken(data.token, data.user);
-        handleNavigation(router, "/dashboard", setIsLoading);
+        handleNavigation(router, "/", setIsLoading);
       } else {
         throw new Error("Unexpected response structure");
       }

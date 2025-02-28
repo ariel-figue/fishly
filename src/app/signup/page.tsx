@@ -79,7 +79,7 @@ export default function Signup() {
 
       if (data?.user?.username) {
         setToken(data.token, data.user);
-        handleNavigation(router, "/dashboard", setIsLoading);
+        handleNavigation(router, "/", setIsLoading);
       } else {
         throw new Error(data?.error || "Unexpected response structure");
       }

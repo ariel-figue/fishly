@@ -12,7 +12,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {user && <SidePane />}
 
       {/* Main content area */}
-      <main className="flex flex-col min-h-screen flex-grow items-center justify-center gap-8 px-8 pb-8">
+      <main className="flex flex-col min-h-screen flex-grow items-center justify-center gap-8 px-8 pb-8 w-full">
         {children}
       </main>
     </div>

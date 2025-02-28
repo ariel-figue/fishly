@@ -39,11 +39,10 @@ export default function Signup() {
   });
 
   // Input Handler
-  const handleChange =
-    (name: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
-      setFormData((prev) => ({ ...prev, [name]: event.target.value }));
-      setErrors((prev) => ({ ...prev, [name]: "" })); // Clear errors on change
-    };
+  const handleChange = (name: string) => (value: string) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: "" })); // Clear errors on change
+  };
 
   // Reusable Validation Function
   const validateForm = () => {
@@ -120,14 +119,16 @@ export default function Signup() {
           <div className="flex gap-4">
             <InputField
               name="firstName"
+              placeholder="First Name"
               value={formData.firstName}
-              setValue={handleChange}
+              setValue={handleChange("firstName")}
               error={errors.firstName}
             />
             <InputField
               name="lastName"
+              placeholder="Last Name"
               value={formData.lastName}
-              setValue={handleChange}
+              setValue={handleChange("lastName")}
               error={errors.lastName}
             />
           </div>
@@ -135,31 +136,35 @@ export default function Signup() {
           {/* Email & Username */}
           <InputField
             name="email"
+            placeholder="Email"
             type="email"
             value={formData.email}
-            setValue={handleChange}
+            setValue={handleChange("email")}
             error={errors.email}
           />
           <InputField
             name="username"
+            placeholder="Username"
             value={formData.username}
-            setValue={handleChange}
+            setValue={handleChange("username")}
             error={errors.username}
           />
 
           {/* Password & Repeat Password */}
           <PasswordInputField
             name="password"
+            placeholder="Password"
             value={formData.password}
-            setValue={handleChange}
+            setValue={handleChange("password")}
             showPassword={showPassword}
             setShowPassword={setShowPassword}
             error={errors.password}
           />
           <PasswordInputField
             name="repeatPassword"
+            placeholder="Repeat Password"
             value={formData.repeatPassword}
-            setValue={handleChange}
+            setValue={handleChange("repeatPassword")}
             showPassword={showRepeatPassword}
             setShowPassword={setShowRepeatPassword}
             error={errors.repeatPassword}

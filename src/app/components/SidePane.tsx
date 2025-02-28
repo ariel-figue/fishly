@@ -40,12 +40,13 @@ const SidePane = () => {
     }, 1000);
   };
 
-  const handleWeatherClick = () => window.alert("Weather clicked");
+  const handleWeatherClick = () => router.push("/weather");
   const handleMapClick = () => window.alert("Map clicked");
   const handleCatchesClick = () => window.alert("Catches clicked");
 
-  const liClass = "flex items-center text-[#2c3e50] gap-2 h-10 rounded-lg p-2 transition w-full cursor-pointer hover:opacity-80 hover:shadow-xs";
-  
+  const liClass =
+    "flex items-center text-[#2c3e50] gap-2 h-10 rounded-lg p-2 transition w-full cursor-pointer hover:opacity-80 hover:shadow-xs";
+
   return (
     <>
       {/* Desktop Sidebar (Hidden on Mobile) */}

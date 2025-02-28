@@ -43,14 +43,40 @@ const SidePane = () => {
   const handleMapClick = () => window.alert("Map clicked");
   const handleCatchesClick = () => window.alert("Catches clicked");
 
+  const liClass = "flex items-center text-[#2c3e50] gap-2 h-10 rounded-lg p-2 transition w-full cursor-pointer hover:opacity-80 hover:shadow-xs";
+  
   return (
     <>
       {/* Desktop Sidebar (Hidden on Mobile) */}
-      <aside className="hidden md:flex flex-col fixed top-0 left-0 h-screen w-[250px] bg-[#f5f5f5] p-8">
+      <aside className="hidden md:flex flex-col relative top-0 left-0 h-screen w-[250px] bg-[#f5f5f5] p-8">
         <ul className="flex flex-col gap-4">
-          <SidePaneItemComponent label="Weather" icon={<IoMdCloud size={24} />} onClick={handleWeatherClick} />
-          <SidePaneItemComponent label="Map" icon={<IoMdMap size={24} />} onClick={handleMapClick} />
-          <SidePaneItemComponent label="Catches" icon={<IoMdHome size={24} />} onClick={handleCatchesClick} />
+          <li className={liClass}>
+            <IoMdCloud size={24} className="shrink-0" />
+            <button
+              onClick={handleWeatherClick}
+              className="pl-8 w-full text-left flex items-center font-medium"
+            >
+              Weather
+            </button>
+          </li>
+          <li className={liClass}>
+            <IoMdMap size={24} className="shrink-0" />
+            <button
+              onClick={handleMapClick}
+              className="pl-8 w-full text-left flex items-center font-medium"
+            >
+              Map
+            </button>
+          </li>
+          <li className={liClass}>
+            <IoMdHome size={24} className="shrink-0" />
+            <button
+              onClick={handleCatchesClick}
+              className="pl-8 w-full text-left flex items-center font-medium"
+            >
+              Catches
+            </button>
+          </li>
         </ul>
 
         {/* Logout Button (Desktop) */}
@@ -64,10 +90,26 @@ const SidePane = () => {
 
       {/* Mobile Bottom Navigation (Hidden on Desktop) */}
       <nav className="md:hidden fixed bottom-0 left-0 w-full bg-[#f5f5f5] shadow-md flex justify-around py-3 border-t border-gray-300">
-        <SidePaneItemComponent label="Weather" icon={<IoMdCloud size={24} />} onClick={handleWeatherClick} />
-        <SidePaneItemComponent label="Map" icon={<IoMdMap size={24} />} onClick={handleMapClick} />
-        <SidePaneItemComponent label="Catches" icon={<IoMdHome size={24} />} onClick={handleCatchesClick} />
-        <SidePaneItemComponent label="Logout" icon={<IoMdLogOut size={24} />} onClick={initiateLogout} />
+        <SidePaneItemComponent
+          label="Weather"
+          icon={<IoMdCloud size={24} />}
+          onClick={handleWeatherClick}
+        />
+        <SidePaneItemComponent
+          label="Map"
+          icon={<IoMdMap size={24} />}
+          onClick={handleMapClick}
+        />
+        <SidePaneItemComponent
+          label="Catches"
+          icon={<IoMdHome size={24} />}
+          onClick={handleCatchesClick}
+        />
+        <SidePaneItemComponent
+          label="Logout"
+          icon={<IoMdLogOut size={24} />}
+          onClick={initiateLogout}
+        />
       </nav>
     </>
   );

@@ -69,7 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const setLogoutTimer = (timeRemaining: number) => {
     if (logoutTimer) clearTimeout(logoutTimer); // Clear any existing timer
     logoutTimer = setTimeout(() => {
-      console.warn("Session expired. Auto-logging out...");
+      window.alert("Session expired. Auto-logging out...");
       logout();
     }, timeRemaining);
   };
@@ -80,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(newUser);
 
     if (newToken && newUser) {
-      // Calculate expiration time in milliseconds from now (1 hour)
+      // Calculate expiration time in milliseconds from now (1 hour 3600ms)
       const expiresAt = Date.now() + 3600 * 1000;
       localStorage.setItem("token", JSON.stringify({ token: newToken, user: newUser, expiresAt }));
 

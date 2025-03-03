@@ -84,7 +84,7 @@ export default function Login() {
 
   return (
     <div>
-      <section className="flex flex-col gap-4 items-center w-[95vw]">
+      <section className="flex flex-col gap-4 items-center w-[95vw] absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
         <FishlyLogo
           handleNavigation={() => handleNavigation(router, "/", setIsLoading)}
         />

@@ -23,12 +23,8 @@ const LocationSearch: React.FC<LocationSearchProps> = ({ onSelect }) => {
     setIsSearching(true);
     try {
       const [currentWeather, forecast] = await Promise.all([
-        axios.get(
-          `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=imperial&appid=${process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY}`
-        ),
-        axios.get(
-          `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=imperial&appid=${process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY}`
-        ),
+        axios.get(`/api/weather?lat=${lat}&lon=${lon}`), // Calls the Next.js API route
+        axios.get(`/api/weather?lat=${lat}&lon=${lon}&forecast=true`), // Fetches the forecast
       ]);
 
       onSelect(currentWeather.data, forecast.data.list); // ✅ Pass both to WeatherCard
@@ -40,41 +36,44 @@ const LocationSearch: React.FC<LocationSearchProps> = ({ onSelect }) => {
   };
 
   useEffect(() => {
+    let isMounted = true; // Prevents unnecessary re-renders
+  
     const fetchLocationAndWeather = async (lat: number, lon: number) => {
+      if (!isMounted) return; // Prevent multiple calls
+  
       try {
-        // Get city/state name for placeholder
-        const geoResponse = await axios.get(
-          `https://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY}`
-        );
-
+        const [geoResponse, weatherResponse, forecastResponse] = await Promise.all([
+          axios.get(`/api/weather?lat=${lat}&lon=${lon}&reverse=true`), // Reverse geolocation
+          axios.get(`/api/weather?lat=${lat}&lon=${lon}`), // Current weather
+          axios.get(`/api/weather?lat=${lat}&lon=${lon}&forecast=true`), // Forecast
+        ]);
+  
         if (geoResponse.data.length > 0) {
           const location = geoResponse.data[0];
-          setPlaceholder(
-            `${location.name}, ${location.state || location.country}`
-          );
-
-          // ✅ Fetch weather on page load
-          fetchWeather(lat, lon);
+          setPlaceholder(`${location.name}, ${location.state || location.country}`);
         }
+  
+        onSelect(weatherResponse.data, forecastResponse.data.list);
       } catch (error) {
-        console.error("Error fetching geolocation:", error);
+        console.error("Error fetching location/weather:", error);
       }
     };
-
+  
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        fetchLocationAndWeather(
-          position.coords.latitude,
-          position.coords.longitude
-        );
+        fetchLocationAndWeather(position.coords.latitude, position.coords.longitude);
       },
       () => {
         console.warn("Geolocation not available. User must manually search.");
       },
       { timeout: 10000 }
     );
+  
+    return () => {
+      isMounted = false; // Cleanup function to prevent multiple calls
+    };
   }, []);
-
+  
   // 🔍 Fetch City/State or ZIP Code Suggestions
   const fetchSuggestions = async (input: string) => {
     if (input.length < 3) {

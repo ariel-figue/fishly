@@ -14,7 +14,7 @@ export const WeatherCard = ({
   const { all } = clouds;
 
   return (
-    <div className="flex flex-col gap-4 p-4 rounded-lg bg-white shadow-lg dark:bg-gray-800">
+    <div className="flex flex-col gap-4 p-4 rounded-lg bg-white shadow-lg dark:bg-gray-800 mt-8">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Image
@@ -23,7 +23,7 @@ export const WeatherCard = ({
             width={50}
             height={50}
           />
-          <div className="text-lg font-semibold">{description}</div>
+          <div className="text-lg font-semibold mr-2">{description}</div>
         </div>
         {isDesktopOrLaptop && (
           <div className="flex items-center gap-2">

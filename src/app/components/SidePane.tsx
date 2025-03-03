@@ -3,7 +3,7 @@
 import { useAuth } from "@/context/AuthProvider";
 import { useRouter } from "next/navigation";
 import { JSX, useState } from "react";
-import { IoMdMap, IoMdCloud, IoMdLogOut } from "react-icons/io"; // Import icons
+import { IoMdMap, IoMdSunny, IoMdLogOut } from "react-icons/io"; // Import icons
 import { GiFishingPole } from "react-icons/gi";
 import Loader from "./Loader";
 
@@ -53,7 +53,7 @@ const SidePane = () => {
       <aside className="hidden md:flex flex-col relative top-0 left-0 h-screen w-[250px] bg-[#f5f5f5] p-8">
         <ul className="flex flex-col gap-4">
           <li className={liClass}>
-            <IoMdCloud size={24} className="shrink-0" />
+            <IoMdSunny size={24} className="shrink-0" />
             <button
               onClick={handleWeatherClick}
               className="pl-8 w-full text-left flex items-center font-medium"
@@ -94,7 +94,7 @@ const SidePane = () => {
       <nav className="md:hidden fixed bottom-0 left-0 w-full bg-[#f5f5f5] shadow-md flex justify-around py-3 border-t border-gray-300">
         <SidePaneItemComponent
           label="Weather"
-          icon={<IoMdCloud size={24} />}
+          icon={<IoMdSunny size={24} />}
           onClick={handleWeatherClick}
         />
         <SidePaneItemComponent

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -10,17 +11,19 @@ import { IoMdSunny } from "react-icons/io";
 
 export default function WeatherPage() {
   const { user } = useAuth();
-  const [weatherData, setWeatherData] = useState(null);
+  const [weatherData, setWeatherData] = useState<any | null>(null);
+  const [hourlyForecast, setHourlyForecast] = useState<any[]>([]); // ✅ Store hourly forecast
   const isDesktopOrLaptop = useMediaQuery({ query: "(min-width: 1224px)" });
-  const [showLoader, setShowLoader] = useState(true);
+  const [isClient, setIsClient] = useState(false);
 
+  // ✅ Ensure hydration to prevent mismatch
   useEffect(() => {
-    setShowLoader(false);
+    setIsClient(true);
   }, []);
 
   return (
-    <section className="flex flex-col gap-4">
-      {showLoader ? (
+    <section className="flex flex-col gap-4 mt-8">
+      {!isClient ? (
         <Loader />
       ) : (
         <div>
@@ -31,12 +34,17 @@ export default function WeatherPage() {
             Welcome to your Fishly weather page, {user?.username}!
           </p>
 
-          {/* Autocomplete Search Bar */}
-          <LocationSearch onSelect={setWeatherData} />
+          {/* 📌 Pass setWeatherData & setHourlyForecast to LocationSearch */}
+          <LocationSearch onSelect={(data, hourly) => {
+            setWeatherData(data);
+            setHourlyForecast(hourly);
+          }} />
 
+          {/* Pass both weather data & hourly forecast */}
           {weatherData && (
             <WeatherCard
               weatherData={weatherData}
+              hourlyForecast={hourlyForecast}
               isDesktopOrLaptop={isDesktopOrLaptop}
             />
           )}

@@ -108,8 +108,8 @@ const SidePane = () => {
           onClick={handleCatchesClick}
         />
         <SidePaneItemComponent
-          label="Logout"
-          icon={<IoMdLogOut size={24} />}
+          label={"Logout"}
+          icon={isLoggingOut ? <Loader size={24}/> : <IoMdLogOut size={24} />}
           onClick={initiateLogout}
         />
       </nav>

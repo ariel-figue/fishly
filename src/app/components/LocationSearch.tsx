@@ -7,14 +7,37 @@ import { IoSearch } from "react-icons/io5"; // Magnifying glass icon
 import { ImSpinner2 } from "react-icons/im"; // Loader icon
 
 interface LocationSearchProps {
-  onSelect: (weatherData: any) => void; // Returns weather data
+  onSelect: (weatherData: any, hourlyForecast: any[]) => void; // ✅ Returns both current & hourly forecast
 }
 
 const LocationSearch: React.FC<LocationSearchProps> = ({ onSelect }) => {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [placeholder, setPlaceholder] = useState("Search for city, state, or ZIP");
+  const [placeholder, setPlaceholder] = useState(
+    "Search for city, state, or ZIP"
+  );
+
+  // ✅ Moved fetchWeather here, making it accessible to handleSelect
+  const fetchWeather = async (lat: number, lon: number) => {
+    setIsSearching(true);
+    try {
+      const [currentWeather, forecast] = await Promise.all([
+        axios.get(
+          `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=imperial&appid=${process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY}`
+        ),
+        axios.get(
+          `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=imperial&appid=${process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY}`
+        ),
+      ]);
+
+      onSelect(currentWeather.data, forecast.data.list); // ✅ Pass both to WeatherCard
+    } catch (error) {
+      console.error("Error fetching weather data:", error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   useEffect(() => {
     const fetchLocationAndWeather = async (lat: number, lon: number) => {
@@ -26,9 +49,11 @@ const LocationSearch: React.FC<LocationSearchProps> = ({ onSelect }) => {
 
         if (geoResponse.data.length > 0) {
           const location = geoResponse.data[0];
-          setPlaceholder(`${location.name}, ${location.state || location.country}`);
+          setPlaceholder(
+            `${location.name}, ${location.state || location.country}`
+          );
 
-          // ✅ Automatically fetch weather on load
+          // ✅ Fetch weather on page load
           fetchWeather(lat, lon);
         }
       } catch (error) {
@@ -36,24 +61,12 @@ const LocationSearch: React.FC<LocationSearchProps> = ({ onSelect }) => {
       }
     };
 
-    const fetchWeather = async (lat: number, lon: number) => {
-      setIsSearching(true);
-      try {
-        const response = await axios.get(
-          `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=imperial&appid=${process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY}`
-        );
-        onSelect(response.data); // ✅ Send weather data to parent
-      } catch (error) {
-        console.error("Error fetching weather data:", error);
-      } finally {
-        setIsSearching(false);
-      }
-    };
-
-    // Attempt to get user's geolocation
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        fetchLocationAndWeather(position.coords.latitude, position.coords.longitude);
+        fetchLocationAndWeather(
+          position.coords.latitude,
+          position.coords.longitude
+        );
       },
       () => {
         console.warn("Geolocation not available. User must manually search.");
@@ -98,38 +111,12 @@ const LocationSearch: React.FC<LocationSearchProps> = ({ onSelect }) => {
   const handleSelect = async (location: any) => {
     setQuery(`${location.name}, ${location.state || location.country}`);
     setSuggestions([]);
-    setIsSearching(true);
-
-    try {
-      const response = await axios.get(
-        `https://api.openweathermap.org/data/2.5/weather?lat=${location.lat}&lon=${location.lon}&units=imperial&appid=${process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY}`
-      );
-      onSelect(response.data);
-    } catch (error) {
-      console.error("Error fetching weather data:", error);
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
-  // 🎯 Trigger Search When User Clicks Button
-  const handleSearch = () => {
-    if (suggestions.length > 0) {
-      handleSelect(suggestions[0]);
-    }
-  };
-
-  // ⌨ Trigger Search on "Enter" Key Press
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && suggestions.length > 0) {
-      handleSelect(suggestions[0]);
-    }
+    fetchWeather(location.lat, location.lon); // ✅ Now works without errors
   };
 
   return (
     <div className="relative w-full mt-4">
       <div className="relative">
-        {/* 🌍 Search Input */}
         <input
           type="text"
           value={query}
@@ -137,14 +124,11 @@ const LocationSearch: React.FC<LocationSearchProps> = ({ onSelect }) => {
             setQuery(e.target.value);
             fetchSuggestions(e.target.value);
           }}
-          onKeyDown={handleKeyPress}
           placeholder={placeholder}
           className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
         />
-
-        {/* 🔍 Search Button with Loader */}
         <button
-          onClick={handleSearch}
+          onClick={() => handleSelect(suggestions[0])}
           disabled={isSearching}
           className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
         >
@@ -156,13 +140,8 @@ const LocationSearch: React.FC<LocationSearchProps> = ({ onSelect }) => {
         </button>
       </div>
 
-      {/* 📌 Suggestions Dropdown */}
-      {isSearching ? (
-        <div className="absolute z-10 bg-white w-full max-w-[500px] border rounded-md mt-1 shadow-md p-2 flex items-center justify-center">
-          <ImSpinner2 className="animate-spin text-xl" />
-        </div>
-      ) : suggestions.length > 0 ? (
-        <ul className="absolute z-10 bg-white w-full max-w-[500px] border rounded-md mt-1 shadow-md">
+      {suggestions.length > 0 && (
+        <ul className="absolute z-10 bg-white w-full border rounded-md mt-1 shadow-md">
           {suggestions.map((location, index) => (
             <li
               key={index}
@@ -173,7 +152,7 @@ const LocationSearch: React.FC<LocationSearchProps> = ({ onSelect }) => {
             </li>
           ))}
         </ul>
-      ) : null}
+      )}
     </div>
   );
 };

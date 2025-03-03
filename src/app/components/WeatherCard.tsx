@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 
 export const WeatherCard = ({
@@ -162,7 +162,10 @@ export const WeatherCard = ({
             } gap-4`}
           >
             {[
-              { label: "Temperature", value: temp ? `${Math.round(temp)}°F` : "N/A" },
+              {
+                label: "Temperature",
+                value: temp ? `${Math.round(temp)}°F` : "N/A",
+              },
               { label: "Humidity", value: humidity ? `${humidity}%` : "N/A" },
               {
                 label: "Pressure",

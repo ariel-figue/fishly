@@ -129,7 +129,7 @@ const LocationSearch: React.FC<LocationSearchProps> = ({ onSelect }) => {
   };
 
   return (
-    <div className="relative w-full mt-2">
+    <div className="relative w-full mt-4">
       <div className="relative w-[500px]">
         {/* 🌍 Search Input */}
         <input

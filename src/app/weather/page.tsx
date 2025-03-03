@@ -17,7 +17,7 @@ export default function WeatherPage() {
   useEffect(() => {
     setShowLoader(false);
   }, []);
-  
+
   return (
     <section className="flex flex-col gap-4">
       {showLoader ? (

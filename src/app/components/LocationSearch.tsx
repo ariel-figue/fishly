@@ -7,7 +7,7 @@ import { IoSearch } from "react-icons/io5"; // Magnifying glass icon
 import { ImSpinner2 } from "react-icons/im"; // Loader icon
 
 interface LocationSearchProps {
-  onSelect: (weatherData: any) => void; // Now correctly returns weather data
+  onSelect: (weatherData: any) => void; // Returns weather data
 }
 
 const LocationSearch: React.FC<LocationSearchProps> = ({ onSelect }) => {
@@ -16,7 +16,6 @@ const LocationSearch: React.FC<LocationSearchProps> = ({ onSelect }) => {
   const [isSearching, setIsSearching] = useState(false);
   const [placeholder, setPlaceholder] = useState("Search for city, state, or ZIP");
 
-  // 🌍 **Use Geolocation to Set Placeholder & Fetch Weather on Load**
   useEffect(() => {
     const fetchLocationAndWeather = async (lat: number, lon: number) => {
       try {
@@ -29,11 +28,11 @@ const LocationSearch: React.FC<LocationSearchProps> = ({ onSelect }) => {
           const location = geoResponse.data[0];
           setPlaceholder(`${location.name}, ${location.state || location.country}`);
 
-          // ✅ Automatically fetch weather on page load
+          // ✅ Automatically fetch weather on load
           fetchWeather(lat, lon);
         }
       } catch (error) {
-        console.error("Error fetching reverse geolocation data:", error);
+        console.error("Error fetching geolocation:", error);
       }
     };
 
@@ -43,7 +42,7 @@ const LocationSearch: React.FC<LocationSearchProps> = ({ onSelect }) => {
         const response = await axios.get(
           `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=imperial&appid=${process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY}`
         );
-        onSelect(response.data); // ✅ Pass weather data to parent component
+        onSelect(response.data); // ✅ Send weather data to parent
       } catch (error) {
         console.error("Error fetching weather data:", error);
       } finally {
@@ -51,17 +50,19 @@ const LocationSearch: React.FC<LocationSearchProps> = ({ onSelect }) => {
       }
     };
 
-    // Try to get user's geolocation
+    // Attempt to get user's geolocation
     navigator.geolocation.getCurrentPosition(
       (position) => {
         fetchLocationAndWeather(position.coords.latitude, position.coords.longitude);
       },
-      (error) => console.error("Geolocation error:", error),
+      () => {
+        console.warn("Geolocation not available. User must manually search.");
+      },
       { timeout: 10000 }
     );
   }, []);
 
-  // 🔍 **Fetch City/State or ZIP Code Suggestions**
+  // 🔍 Fetch City/State or ZIP Code Suggestions
   const fetchSuggestions = async (input: string) => {
     if (input.length < 3) {
       setSuggestions([]);
@@ -71,7 +72,6 @@ const LocationSearch: React.FC<LocationSearchProps> = ({ onSelect }) => {
     try {
       let response;
       if (/^\d+$/.test(input)) {
-        // ZIP code search
         response = await axios.get(
           `https://api.openweathermap.org/geo/1.0/zip?zip=${input},US&appid=${process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY}`
         );
@@ -84,7 +84,6 @@ const LocationSearch: React.FC<LocationSearchProps> = ({ onSelect }) => {
           },
         ]);
       } else {
-        // City/State search
         response = await axios.get(
           `https://api.openweathermap.org/geo/1.0/direct?q=${input}&limit=5&appid=${process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY}`
         );
@@ -95,33 +94,32 @@ const LocationSearch: React.FC<LocationSearchProps> = ({ onSelect }) => {
     }
   };
 
-  // ✅ **Handle User Selection**
+  // ✅ Handle User Selection
   const handleSelect = async (location: any) => {
     setQuery(`${location.name}, ${location.state || location.country}`);
     setSuggestions([]);
-    setIsSearching(true); // Show loader while fetching weather data
+    setIsSearching(true);
 
     try {
       const response = await axios.get(
         `https://api.openweathermap.org/data/2.5/weather?lat=${location.lat}&lon=${location.lon}&units=imperial&appid=${process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY}`
       );
-
-      onSelect(response.data); // Send full weather data to parent
+      onSelect(response.data);
     } catch (error) {
       console.error("Error fetching weather data:", error);
     } finally {
-      setIsSearching(false); // Hide loader
+      setIsSearching(false);
     }
   };
 
-  // 🎯 **Trigger Search When User Clicks Button**
+  // 🎯 Trigger Search When User Clicks Button
   const handleSearch = () => {
     if (suggestions.length > 0) {
-      handleSelect(suggestions[0]); // Select first suggestion
+      handleSelect(suggestions[0]);
     }
   };
 
-  // ⌨ **Trigger Search on "Enter" Key Press**
+  // ⌨ Trigger Search on "Enter" Key Press
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && suggestions.length > 0) {
       handleSelect(suggestions[0]);
@@ -130,7 +128,7 @@ const LocationSearch: React.FC<LocationSearchProps> = ({ onSelect }) => {
 
   return (
     <div className="relative w-full mt-4">
-      <div className="relative w-[500px]">
+      <div className="relative">
         {/* 🌍 Search Input */}
         <input
           type="text"
@@ -140,7 +138,7 @@ const LocationSearch: React.FC<LocationSearchProps> = ({ onSelect }) => {
             fetchSuggestions(e.target.value);
           }}
           onKeyDown={handleKeyPress}
-          placeholder={placeholder} // Dynamically updates based on geolocation
+          placeholder={placeholder}
           className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
         />
 
@@ -160,11 +158,11 @@ const LocationSearch: React.FC<LocationSearchProps> = ({ onSelect }) => {
 
       {/* 📌 Suggestions Dropdown */}
       {isSearching ? (
-        <div className="absolute z-10 bg-white w-[500px] border rounded-md mt-1 shadow-md p-2 flex items-center justify-center">
+        <div className="absolute z-10 bg-white w-full max-w-[500px] border rounded-md mt-1 shadow-md p-2 flex items-center justify-center">
           <ImSpinner2 className="animate-spin text-xl" />
         </div>
       ) : suggestions.length > 0 ? (
-        <ul className="absolute z-10 bg-white w-[500px] border rounded-md mt-1 shadow-md">
+        <ul className="absolute z-10 bg-white w-full max-w-[500px] border rounded-md mt-1 shadow-md">
           {suggestions.map((location, index) => (
             <li
               key={index}

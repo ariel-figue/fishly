@@ -83,62 +83,63 @@ export default function Login() {
   }
 
   return (
-    <div>
-      <section className="flex flex-col gap-4 items-center w-[95vw] absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-        <FishlyLogo
-          handleNavigation={() => handleNavigation(router, "/", setIsLoading)}
+    <section className="flex flex-col items-center justify-start min-h-screen pt-6 sm:pt-8">
+      <FishlyLogo
+        handleNavigation={() => handleNavigation(router, "/", setIsLoading)}
+      />
+
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-4 bg-white dark:bg-gray-900 p-4 sm:p-6 rounded-md w-[90vw] sm:w-[500px] mt-4 sm:mt-6 shadow-md"
+        aria-label="Login form"
+      >
+        <h2 className="text-4xl sm:text-5xl font-semibold text-center text-[#2c3e50] dark:text-gray-200 pb-4">
+          Log in
+        </h2>
+
+        <InputField
+          name="email"
+          placeholder="Email"
+          type="email"
+          value={formData.email}
+          setValue={handleChange("email")}
+          error={errors.email}
+        />
+        <PasswordInputField
+          name="password"
+          placeholder="Password"
+          value={formData.password}
+          setValue={handleChange("password")}
+          showPassword={showPassword}
+          setShowPassword={setShowPassword}
+          error={errors.password}
         />
 
-        <form
-          onSubmit={handleSubmit}
-          className="flex flex-col gap-4 bg-white p-4 rounded-md sm:w-[500px]"
+        <button
+          type="submit"
+          className="bg-[#2c3e50] dark:bg-gray-700 text-white p-2 rounded-md font-bold hover:bg-[#2A4A68] dark:hover:bg-gray-600 transition-colors"
+          aria-label="Log in"
         >
-          <h2 className="text-5xl font-semibold text-center text-[#2c3e50] pb-4">
-            Log in
-          </h2>
+          Log in
+        </button>
 
-          <InputField
-            name="email"
-            placeholder="Email"
-            type="email"
-            value={formData.email}
-            setValue={handleChange("email")}
-            error={errors.email}
-          />
-          <PasswordInputField
-            name="password"
-            placeholder="Password"
-            value={formData.password}
-            setValue={handleChange("password")}
-            showPassword={showPassword}
-            setShowPassword={setShowPassword}
-            error={errors.password}
-          />
+        {errors.apiError && (
+          <div className="text-red-500 text-sm text-center mt-2">
+            {errors.apiError}
+          </div>
+        )}
+      </form>
 
-          <button
-            type="submit"
-            className="bg-[#2c3e50] text-white p-2 rounded-md font-bold hover:bg-[#2A4A68]"
-          >
-            Login
-          </button>
-
-          {errors.apiError && (
-            <div className="text-red-500 text-sm text-center">
-              {errors.apiError}
-            </div>
-          )}
-        </form>
-
-        <p className="text-center text-[#34495e] font-semibold">
-          Don&apos;t have an account?{" "}
-          <button
-            onClick={() => handleNavigation(router, "/signup", setIsLoading)}
-            className="underline hover:opacity-80 text-[#2c3e50]"
-          >
-            Sign up
-          </button>
-        </p>
-      </section>
-    </div>
+      <p className="text-center text-[#34495e] dark:text-gray-400 font-semibold mt-4">
+        Don&apos;t have an account?{" "}
+        <button
+          onClick={() => handleNavigation(router, "/signup", setIsLoading)}
+          className="underline hover:opacity-80 text-[#2c3e50] dark:text-gray-200"
+          aria-label="Sign up"
+        >
+          Sign up
+        </button>
+      </p>
+    </section>
   );
 }

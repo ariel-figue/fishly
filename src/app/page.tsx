@@ -42,7 +42,7 @@ export default function Home() {
       {user ? (
         <Dashboard /> 
       ) : (
-        <section className="flex flex-col gap-4 items-center">
+        <section className="flex flex-col gap-4 justify-center items-center h-screen">
           <FishlyLogo handleNavigation={() => navigateTo("/")} animated={true} />
           <h2 className="text-5xl font-semibold text-center text-[#2c3e50]">
             Welcome to Fishly

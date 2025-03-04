@@ -3,59 +3,85 @@ import axios from "axios";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const lat = searchParams.get("lat");
-  const lon = searchParams.get("lon");
-  const query = searchParams.get("query"); // ✅ New query param for city/ZIP search
-  const reverse = searchParams.get("reverse");
-  const forecast = searchParams.get("forecast");
-  const apiKey = process.env.OPENWEATHER_API_KEY;
+  let lat = searchParams.get("lat");
+  let lon = searchParams.get("lon");
+  const query = searchParams.get("query"); // ✅ City/ZIP query
+  const forecast = searchParams.get("forecast"); // ✅ Fetch forecast if present
+  const weatherApiKey = process.env.WEATHERAPI_KEY; // ✅ WeatherAPI key
 
-  if (!apiKey) {
+  if (!weatherApiKey) {
     return NextResponse.json({ error: "Missing API key" }, { status: 500 });
   }
 
   try {
-    let response;
+    let responseData;
 
     if (query) {
-      // ✅ Handle city or ZIP code search
-      if (/^\d+$/.test(query)) {
-        response = await axios.get(
-          `https://api.openweathermap.org/geo/1.0/zip?zip=${query},US&appid=${apiKey}`
-        );
-        response.data = [{ // Convert to array of objects with name, lat, lon and state
-          name: response.data.name,
-          lat: response.data.lat,
-          lon: response.data.lon,
-          state: response.data.state || "US",
-        }];
-      } else {
-        response = await axios.get(
-          `https://api.openweathermap.org/geo/1.0/direct?q=${query}&limit=5&appid=${apiKey}`
-        );
-      }
-    } else if (lat && lon) {
-      if (reverse) {
-        response = await axios.get(
-          `https://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${apiKey}`
-        );
-      } else if (forecast) {
-        response = await axios.get(
-          `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=imperial&appid=${apiKey}`
-        );
-      } else {
-        response = await axios.get(
-          `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=imperial&appid=${apiKey}`
-        );
-      }
-    } else {
-      return NextResponse.json({ error: "Invalid request parameters" }, { status: 400 });
+      // ✅ Autocomplete for location search
+      const searchResponse = await axios.get(
+        `https://api.weatherapi.com/v1/search.json?key=${weatherApiKey}&q=${query}`
+      );
+      return NextResponse.json(searchResponse.data);
     }
 
-    return NextResponse.json(response.data);
+    if (!lat || !lon) {
+      // ✅ Get user geolocation based on IP
+      const geoResponse = await axios.get(
+        `https://api.weatherapi.com/v1/ip.json?key=${weatherApiKey}&q=auto:ip`
+      );
+      lat = geoResponse.data.lat;
+      lon = geoResponse.data.lon;
+    }
+
+    if (lat && lon) {
+      // ✅ Fetch Marine Weather
+      const marineResponse = await axios.get(
+        `https://api.weatherapi.com/v1/marine.json?key=${weatherApiKey}&q=${lat},${lon}&days=1`
+      );
+
+      // ✅ Fetch Land-Based Forecast & Alerts
+      const forecastResponse = await axios.get(
+        `https://api.weatherapi.com/v1/forecast.json?key=${weatherApiKey}&q=${lat},${lon}&days=3&alerts=yes&hour=24`
+      );
+
+      // ✅ Fetch Moon Info
+      const todayDate = new Date().toISOString().split("T")[0]; // Format: YYYY-MM-DD
+      const astronomyResponse = await axios.get(
+        `https://api.weatherapi.com/v1/astronomy.json?key=${weatherApiKey}&q=${lat},${lon}&dt=${todayDate}`
+      );
+
+      responseData = {
+        location: forecastResponse.data.location,
+        geolocation: {
+          lat,
+          lon,
+          city: forecastResponse.data.location.name,
+          region: forecastResponse.data.location.region,
+          country: forecastResponse.data.location.country,
+        },
+        marine: marineResponse.data,
+        forecast: {
+          current: forecastResponse.data.current,
+          alerts: forecastResponse.data.alerts?.alert || [],
+          daily: forecastResponse.data.forecast.forecastday, // ✅ Daily forecast
+          hourly: forecastResponse.data.forecast.forecastday.flatMap((day) => day.hour), // ✅ Hourly forecast
+        },
+        moon: astronomyResponse.data.astronomy.astro,
+      };
+    } else {
+      return NextResponse.json(
+        { error: "Invalid request parameters" },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json(responseData);
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to fetch data", details: error instanceof Error ? error.message : error },
+      {
+        error: "Failed to fetch data",
+        details: error instanceof Error ? error.message : error,
+      },
       { status: 500 }
     );
   }

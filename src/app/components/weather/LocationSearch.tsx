@@ -20,12 +20,10 @@ const LocationSearch: React.FC<LocationSearchProps> = ({ onSelect }) => {
   const fetchWeather = async (lat: number, lon: number) => {
     setIsSearching(true);
     try {
-      const [currentWeather, forecast] = await Promise.all([
-        axios.get(`/api/weather?lat=${lat}&lon=${lon}`), // Current weather
-        axios.get(`/api/weather?lat=${lat}&lon=${lon}&forecast=true`), // Forecast
-      ]);
+      const response = await axios.get(`/api/weather?lat=${lat}&lon=${lon}&forecast=true`);
+      const { forecast } = response.data;
 
-      onSelect(currentWeather.data, forecast.data.list); // ✅ Pass both to WeatherCard
+      onSelect(response.data, forecast?.hourly || []); // ✅ Ensure correct hourly forecast usage
     } catch (error) {
       console.error("Error fetching weather data:", error);
     } finally {
@@ -39,36 +37,49 @@ const LocationSearch: React.FC<LocationSearchProps> = ({ onSelect }) => {
       setSuggestions([]);
       return;
     }
-  
+
     try {
-      let response;
-      if (/\d{5}/.test(input)) { // Check if input is a ZIP code
-        response = await axios.get(`/api/weather?query=${input}`); // Fetch using ZIP code
-      } else {
-        response = await axios.get(`/api/weather?query=${encodeURIComponent(input)}`); // Fetch using city/state
-      }
-  
-      // ✅ Remove duplicates by filtering unique (name + state)
+      const response = await axios.get(`/api/weather?query=${encodeURIComponent(input)}`);
+      // ✅ Remove duplicates by filtering unique (name + region + country)
       const uniqueSuggestions = response.data.reduce((acc: any[], location: any) => {
-        const exists = acc.find(
-          (item) => item.name === location.name && item.state === location.state
-        );
-        if (!exists) acc.push(location);
+        const key = `${location.name}-${location.region || ''}-${location.country || ''}`;
+        if (!acc.find((item) => `${item.name}-${item.region || ''}-${item.country || ''}` === key)) {
+          acc.push(location);
+        }
         return acc;
       }, []);
-  
+
       setSuggestions(uniqueSuggestions);
     } catch (error) {
       console.error("Error fetching location suggestions:", error);
     }
   };
-  
 
   // ✅ Handle User Selection
-  const handleSelect = async (location: any) => {
-    setQuery(`${location.name}, ${location.state || location.country}`);
+  const handleSelect = (location: any) => {
+    // Construct the display string: "city, state, country" if both region and country are available
+    const statePart = location.region ? `${location.region}, ` : "";
+    const countryPart = location.country || "";
+    const displayLocation = location.country
+      ? `${location.name}, ${statePart}${countryPart}`
+      : location.region
+        ? `${location.name}, ${statePart}`
+        : location.name;
+
+    setQuery(displayLocation);
     setSuggestions([]);
     fetchWeather(location.lat, location.lon); // ✅ Fetch weather for selected location
+  };
+
+  // ✅ Format suggestion display as "city, state, country"
+  const formatSuggestion = (location: any) => {
+    const statePart = location.region ? `${location.region}, ` : "";
+    const countryPart = location.country || "";
+    return location.country
+      ? `${location.name}, ${statePart}${countryPart}`
+      : location.region
+        ? `${location.name}, ${statePart}`
+        : location.name;
   };
 
   return (
@@ -86,7 +97,7 @@ const LocationSearch: React.FC<LocationSearchProps> = ({ onSelect }) => {
         />
         <button
           onClick={() => handleSelect(suggestions[0])}
-          disabled={isSearching}
+          disabled={isSearching || suggestions.length === 0}
           className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
         >
           {isSearching ? <ImSpinner2 className="animate-spin text-xl" /> : <IoSearch className="text-xl" />}
@@ -101,7 +112,7 @@ const LocationSearch: React.FC<LocationSearchProps> = ({ onSelect }) => {
               className="p-2 cursor-pointer hover:bg-gray-200 flex justify-between"
               onClick={() => handleSelect(location)}
             >
-              {location.name}, {location.state || location.country}
+              {formatSuggestion(location)}
             </li>
           ))}
         </ul>

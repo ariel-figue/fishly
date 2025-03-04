@@ -1,9 +1,9 @@
 "use client";
 
 import { useAuth } from "@/context/AuthProvider";
-import { useRouter } from "next/navigation";
-import { JSX, useState } from "react";
-import { IoMdMap, IoMdSunny, IoMdLogOut } from "react-icons/io"; // Import icons
+import { useRouter, usePathname } from "next/navigation";
+import { JSX, useState, memo } from "react";
+import { IoMdMap, IoMdSunny, IoMdLogOut } from "react-icons/io";
 import { GiFishingPole } from "react-icons/gi";
 import Loader from "./Loader";
 
@@ -11,106 +11,93 @@ interface SidePaneItem {
   label: string;
   icon: JSX.Element;
   onClick: () => void;
+  isActive: boolean;
 }
 
-const SidePaneItemComponent = ({ label, icon, onClick }: SidePaneItem) => (
+const SidePaneItemComponent = memo(({ label, icon, onClick, isActive }: SidePaneItem) => (
   <button
-    className="flex flex-col items-center justify-center text-[#2c3e50] hover:text-[#34495e] transition"
+    className={`flex flex-col items-center justify-center text-[#2c3e50] hover:bg-[#e0e7ff] hover:text-[#1e3a8a] hover:font-semibold transition py-2 px-4 rounded-lg ${
+      isActive ? "bg-[#e0e7ff] text-[#1e3a8a] font-semibold" : ""
+    }`}
     onClick={onClick}
+    aria-label={label}
   >
     {icon}
-    <span className="text-xs font-medium">{label}</span>
+    <span className="text-xs font-medium mt-1">{label}</span>
   </button>
-);
+));
+SidePaneItemComponent.displayName = "SidePaneItemComponent";
 
 const SidePane = () => {
   const { logout } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
 
   const handleLogout = () => {
-    logout();
-    router.push("/");
-  };
-
-  const initiateLogout = () => {
     setIsLoggingOut(true);
     setTimeout(() => {
-      handleLogout();
+      logout();
+      router.push("/");
     }, 1000);
   };
 
   const handleWeatherClick = () => router.push("/weather");
-  const handleMapClick = () => window.alert("Map clicked");
-  const handleCatchesClick = () => window.alert("Catches clicked");
+  const handleMapClick = () => router.push("/map");
+  const handleCatchesClick = () => router.push("/catches");
 
-  const liClass =
-    "flex items-center text-[#2c3e50] gap-2 h-10 rounded-lg p-2 transition w-full cursor-pointer hover:opacity-80 hover:shadow-xs";
+  const navItems = [
+    { label: "Weather", icon: <IoMdSunny size={24} />, onClick: handleWeatherClick, path: "/weather" },
+    { label: "Map", icon: <IoMdMap size={24} />, onClick: handleMapClick, path: "/map" },
+    { label: "Catches", icon: <GiFishingPole size={24} />, onClick: handleCatchesClick, path: "/catches" },
+  ];
 
   return (
     <>
       {/* Desktop Sidebar (Hidden on Mobile) */}
-      <aside className="hidden md:flex flex-col relative top-0 left-0 h-screen w-[250px] bg-[#f5f5f5] p-8">
-        <ul className="flex flex-col gap-4">
-          <li className={liClass}>
-            <IoMdSunny size={24} className="shrink-0" />
-            <button
-              onClick={handleWeatherClick}
-              className="pl-8 w-full text-left flex items-center font-medium"
-            >
-              Weather
-            </button>
-          </li>
-          <li className={liClass}>
-            <IoMdMap size={24} className="shrink-0" />
-            <button
-              onClick={handleMapClick}
-              className="pl-8 w-full text-left flex items-center font-medium"
-            >
-              Map
-            </button>
-          </li>
-          <li className={liClass}>
-            <GiFishingPole size={24} className="shrink-0" />
-            <button
-              onClick={handleCatchesClick}
-              className="pl-8 w-full text-left flex items-center font-medium"
-            >
-              Catches
-            </button>
-          </li>
-        </ul>
+      <aside className="hidden md:flex flex-col fixed top-0 left-0 w-[250px] h-screen bg-[#f8fafc] dark:bg-[#1e293b] shadow-lg p-6 z-10">
+        <div className="flex flex-col h-full">
+          <nav className="flex flex-col gap-2 overflow-y-auto">
+            {navItems.map((item) => (
+              <SidePaneItemComponent
+                key={item.label}
+                label={item.label}
+                icon={item.icon}
+                onClick={item.onClick}
+                isActive={pathname === item.path}
+              />
+            ))}
+          </nav>
 
-        {/* Logout Button (Desktop) */}
-        <button
-          onClick={initiateLogout}
-          className="bg-[#2c3e50] text-white px-4 py-2 rounded-md font-medium hover:bg-[#34495e] transition flex items-center justify-center w-full mt-auto"
-        >
-          {isLoggingOut ? <Loader size={24} color="white" /> : "Logout"}
-        </button>
+          {/* Logout Button (Desktop) - Positioned at the bottom using flexbox */}
+          <button
+            onClick={handleLogout}
+            className="bg-[#2c3e50] dark:bg-[#334155] text-white px-4 py-2 rounded-lg font-medium hover:bg-[#1e3a8a] dark:hover:bg-[#475569] transition flex items-center justify-center gap-2 w-full mt-auto mb-4 shadow-sm"
+            aria-label="Logout"
+            disabled={isLoggingOut}
+          >
+            {isLoggingOut ? <Loader size={24} color="white" /> : <IoMdLogOut size={20} />}
+            {isLoggingOut ? "Logging Out..." : "Logout"}
+          </button>
+        </div>
       </aside>
 
       {/* Mobile Bottom Navigation (Hidden on Desktop) */}
-      <nav className="md:hidden fixed bottom-0 left-0 w-full bg-[#f5f5f5] shadow-md flex justify-around py-3 border-t border-gray-300">
+      <nav className="md:hidden fixed bottom-0 left-0 w-full bg-[#f8fafc] dark:bg-[#1e293b] shadow-md flex justify-around py-2 border-t border-gray-300 h-16 supports-[padding-bottom:env(safe-area-inset-bottom)]:pb-[calc(env(safe-area-inset-bottom)+0.2rem)] z-10 overflow-x-auto">
+        {navItems.map((item) => (
+          <SidePaneItemComponent
+            key={item.label}
+            label={item.label}
+            icon={item.icon}
+            onClick={item.onClick}
+            isActive={pathname === item.path}
+          />
+        ))}
         <SidePaneItemComponent
-          label="Weather"
-          icon={<IoMdSunny size={24} />}
-          onClick={handleWeatherClick}
-        />
-        <SidePaneItemComponent
-          label="Map"
-          icon={<IoMdMap size={24} />}
-          onClick={handleMapClick}
-        />
-        <SidePaneItemComponent
-          label="Catches"
-          icon={<GiFishingPole size={24} />}
-          onClick={handleCatchesClick}
-        />
-        <SidePaneItemComponent
-          label={"Logout"}
-          icon={isLoggingOut ? <Loader size={24}/> : <IoMdLogOut size={24} />}
-          onClick={initiateLogout}
+          label="Logout"
+          icon={isLoggingOut ? <Loader size={24} /> : <IoMdLogOut size={24} />}
+          onClick={handleLogout}
+          isActive={false}
         />
       </nav>
     </>

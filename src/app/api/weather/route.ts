@@ -64,7 +64,7 @@ export async function GET(req: Request) {
           current: forecastResponse.data.current,
           alerts: forecastResponse.data.alerts?.alert || [],
           daily: forecastResponse.data.forecast.forecastday, // ✅ Daily forecast
-          hourly: forecastResponse.data.forecast.forecastday.flatMap((day) => day.hour), // ✅ Hourly forecast
+          hourly: forecastResponse.data.forecast.forecastday.flatMap((day: { hour: unknown; }) => day.hour), // ✅ Hourly forecast
         },
         moon: astronomyResponse.data.astronomy.astro,
       };

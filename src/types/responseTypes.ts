@@ -14,3 +14,4 @@ export type FailureResponse = {
   error: string;
   status: number;
 }
+

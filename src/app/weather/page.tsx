@@ -6,7 +6,6 @@ import { useAuth } from "@/context/AuthProvider";
 import { useRouter } from "next/navigation";
 import WeatherCard from "../components/weather/WeatherCard";
 import LocationSearch from "../components/weather/LocationSearch";
-import { useMediaQuery } from "react-responsive";
 import Loader from "../components/Loader";
 import { IoMdSunny } from "react-icons/io";
 import axios from "axios";
@@ -16,7 +15,6 @@ export default function WeatherPage() {
   const router = useRouter();
   const [weatherData, setWeatherData] = useState<any | null>(null);
   const [hourlyForecast, setHourlyForecast] = useState<any[]>([]);
-  const isDesktopOrLaptop = useMediaQuery({ query: "(min-width: 1224px)" });
   const [isFetching, setIsFetching] = useState(true); // Renamed for clarity
   const [location, setLocation] = useState<string>(""); // Stores the user's location
 
@@ -109,11 +107,7 @@ export default function WeatherPage() {
         }}
       />
 
-      <WeatherCard
-        weatherData={weatherData}
-        hourlyForecast={hourlyForecast}
-        isDesktopOrLaptop={isDesktopOrLaptop}
-      />
+      <WeatherCard weatherData={weatherData} hourlyForecast={hourlyForecast} />
     </section>
   );
 }

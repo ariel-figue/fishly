@@ -8,10 +8,10 @@ Fishly is a fishing companion app built with Next.js, designed to provide real-t
 
 - **User Login & Authentication** – Secure sign-in to personalize your fishing experience.
 - **Interactive Landing Page** – Explore the app's features with a clean and modern UI.
+- **Real-Time Fishing Conditions** – Get live weather, tide, and moon phase data to optimize fishing trips.
 
 ### 🔜 Upcoming Features:
 
-- **Real-Time Fishing Conditions** – Get live weather, tide, and moon phase data to optimize fishing trips.
 - **Catch Logging & History** – Track your catches, including species, location, and bait used.
 - **Location-Based Fishing Spots** – Discover top-rated fishing locations based on user data.
 - **AI-Powered Fishing Insights** – Receive predictive insights on the best times and locations to fish.

@@ -24,7 +24,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const routesWithoutSidePane = ["/", "/dashboard", "/login", "/register"];
 
   // Memoize the hideSidePane logic
-  const hideSidePane = useMemo(() => routesWithoutSidePane.includes(pathname), [pathname]);
+  const hideSidePane = useMemo(
+    () => routesWithoutSidePane.includes(pathname),
+    [pathname, routesWithoutSidePane]
+  );
 
   return (
     <LoadingProvider>

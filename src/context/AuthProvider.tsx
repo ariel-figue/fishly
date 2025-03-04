@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { setCookie, destroyCookie } from "nookies"; // For cookie management
+import { setCookie, destroyCookie } from "nookies";
 import Loader from "@/app/components/Loader";
 
 interface User {
@@ -23,6 +23,7 @@ interface AuthData {
 interface AuthContextType {
   user: User | null;
   token: string | null;
+  expiresAt: number | null; // Added expiresAt to the interface
   loading: boolean;
   setToken: (token: string, user: User, expiresIn?: number) => void;
   logout: () => void;
@@ -30,7 +31,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Default expiration time (1 hour)
 const DEFAULT_TOKEN_EXPIRATION_SECONDS = 60 * 60;
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -38,51 +38,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [expiresAt, setExpiresAt] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isLoggingOut, setIsLoggingOut] = useState(false); // For logout loading state
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const router = useRouter();
 
-  // Load user data from localStorage on mount
-  const loadUser = useCallback(() => {
-    try {
-      const storedData = localStorage.getItem("token");
-      if (!storedData) {
-        setLoading(false);
-        return;
-      }
+  
+  const logout = useCallback(() => {
+    setIsLoggingOut(true);
+    localStorage.removeItem("token");
+    destroyCookie(null, "token", { path: "/" });
+    setTokenState(null);
+    setUser(null);
+    setExpiresAt(null);
+    setLoading(false);
 
-      const parsedData: AuthData = JSON.parse(storedData);
-      const now = Date.now();
-
-      // Validate token and expiration
-      if (!parsedData.token || !parsedData.user || !parsedData.expiresAt) {
-        console.warn("Invalid auth data in localStorage. Logging out...");
-        logout();
-        return;
-      }
-
-      // Check if session has expired
-      if (parsedData.expiresAt <= now) {
-        console.warn("Session expired on load. Logging out...");
-        logout();
-        return;
-      }
-
-      // Set auth data
-      setTokenState(parsedData.token);
-      setUser(parsedData.user);
-      setExpiresAt(parsedData.expiresAt);
-      setLoading(false);
-
-      // Set logout timer
-      const timeRemaining = parsedData.expiresAt - now;
-      setLogoutTimer(timeRemaining);
-    } catch (error) {
-      console.error("Failed to load auth data from localStorage:", error);
-      logout();
-    }
-  }, []);
-
-  // Handle logout timer
+    setTimeout(() => {
+      router.push("/login");
+      setIsLoggingOut(false);
+    }, 500);
+  }, [router]);
+  
   const setLogoutTimer = useCallback((timeRemaining: number) => {
     if (timeRemaining <= 0) {
       console.warn("Time remaining is invalid or negative. Logging out immediately...");
@@ -95,87 +69,95 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       logout();
     }, timeRemaining);
 
-    // Cleanup timer on unmount or token change
     return () => clearTimeout(timer);
-  }, []);
+  }, [logout]);
 
-  // Handle storage events (e.g., logout from another tab)
+  const loadUser = useCallback(() => {
+    try {
+      const storedData = localStorage.getItem("token");
+      if (!storedData) {
+        setLoading(false);
+        return;
+      }
+
+      const parsedData: AuthData = JSON.parse(storedData);
+      const now = Date.now();
+
+      if (!parsedData.token || !parsedData.user || !parsedData.expiresAt) {
+        console.warn("Invalid auth data in localStorage. Logging out...");
+        logout();
+        return;
+      }
+
+      if (parsedData.expiresAt <= now) {
+        console.warn("Session expired on load. Logging out...");
+        logout();
+        return;
+      }
+
+      setTokenState(parsedData.token);
+      setUser(parsedData.user);
+      setExpiresAt(parsedData.expiresAt);
+      setLoading(false);
+
+      const timeRemaining = parsedData.expiresAt - now;
+      setLogoutTimer(timeRemaining);
+    } catch (error) {
+      console.error("Failed to load auth data from localStorage:", error);
+      logout();
+    }
+  }, [logout, setLogoutTimer]);
+
   const handleStorageEvent = useCallback(() => {
     loadUser();
   }, [loadUser]);
 
-  // Load user data on mount and listen for storage events
   useEffect(() => {
     loadUser();
-
     window.addEventListener("storage", handleStorageEvent);
-
     return () => {
       window.removeEventListener("storage", handleStorageEvent);
     };
   }, [loadUser, handleStorageEvent]);
 
-  // Check expiration on every render
   useEffect(() => {
     const now = Date.now();
     if (expiresAt && expiresAt <= now && token) {
       console.warn("Session expired during runtime. Logging out...");
       logout();
     }
-  }, [token, expiresAt]);
+  }, [token, expiresAt, logout]);
 
-  // Store token and user data
   const setToken = useCallback(
     (newToken: string, newUser: User, expiresInSeconds?: number) => {
       try {
-        // Calculate expiration time
         const expiresIn = expiresInSeconds ?? DEFAULT_TOKEN_EXPIRATION_SECONDS;
         const expiresAt = Date.now() + expiresIn * 1000;
 
-        // Update state
         setTokenState(newToken);
         setUser(newUser);
         setExpiresAt(expiresAt);
         setLoading(false);
 
-        // Store in localStorage
         const authData: AuthData = { token: newToken, user: newUser, expiresAt };
         localStorage.setItem("token", JSON.stringify(authData));
 
-        // Sync to cookies for middleware
         setCookie(null, "token", JSON.stringify(authData), {
-          maxAge: expiresIn, // Cookie expiration in seconds
+          maxAge: expiresIn,
           path: "/",
-          secure: process.env.NODE_ENV === "production", // Secure in production
+          secure: process.env.NODE_ENV === "production",
           sameSite: "strict",
         });
 
-        // Set logout timer
         setLogoutTimer(expiresIn * 1000);
       } catch (error) {
         console.error("Failed to set auth data:", error);
         logout();
       }
     },
-    []
+    [logout, setLogoutTimer]
   );
 
-  // Handle logout
-  const logout = useCallback(() => {
-    setIsLoggingOut(true);
-    localStorage.removeItem("token");
-    destroyCookie(null, "token", { path: "/" }); // Remove cookie
-    setTokenState(null);
-    setUser(null);
-    setExpiresAt(null);
-    setLoading(false);
-
-    // Redirect to login page after a short delay to show loader
-    setTimeout(() => {
-      router.push("/login");
-      setIsLoggingOut(false);
-    }, 500);
-  }, [router]);
 
   if (isLoggingOut) {
     return (
@@ -186,23 +168,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, setToken, logout }}>
+    <AuthContext.Provider value={{ user, token, expiresAt, loading, setToken, logout }}>
       {children}
     </AuthContext.Provider>
   );
-};
+}
 
-// Custom hook to access auth context
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
 
-  const { user, token, expiresAt, logout } = context;
+  const { token, expiresAt, logout } = context;
   const now = Date.now();
 
-  // Validate token expiration on every access
   if (token && expiresAt && expiresAt <= now) {
     console.warn("Session expired during useAuth access. Logging out...");
     logout();

@@ -6,7 +6,7 @@ export async function GET(req: Request) {
   let lat = searchParams.get("lat");
   let lon = searchParams.get("lon");
   const query = searchParams.get("query"); // ✅ City/ZIP query
-  const forecast = searchParams.get("forecast"); // ✅ Fetch forecast if present
+  const _ = searchParams.get("forecast"); // ✅ Fetch forecast if present
   const weatherApiKey = process.env.WEATHERAPI_KEY; // ✅ WeatherAPI key
 
   if (!weatherApiKey) {

@@ -6,6 +6,9 @@ import { usePathname } from "next/navigation";
 import { useMemo } from "react";
 import { LoadingProvider } from "@/context/LoadingContext";
 
+// Define routes where SidePane should be hidden (moved outside component)
+const routesWithoutSidePane = ["/", "/dashboard", "/login", "/register"];
+
 const SidePane = dynamic(() => import("./SidePane"), {
   ssr: false,
   loading: () => <div className="hidden md:block w-[250px] h-full" />,
@@ -20,14 +23,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const { user, loading: authLoading } = useAuth();
   const pathname = usePathname();
 
-  // Define routes where SidePane should be hidden
-  const routesWithoutSidePane = ["/", "/dashboard", "/login", "/register"];
-
   // Memoize the hideSidePane logic
-  const hideSidePane = useMemo(
-    () => routesWithoutSidePane.includes(pathname),
-    [pathname, routesWithoutSidePane]
-  );
+  const hideSidePane = useMemo(() => routesWithoutSidePane.includes(pathname), [pathname]);
 
   return (
     <LoadingProvider>

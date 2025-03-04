@@ -19,10 +19,11 @@ import SunMoonCard from "./SunMoonCard";
 import TidesCard from "./TidesCard";
 import WeatherInfoCard from "./WeatherInfoCard";
 import HourlyForecastCard from "./HourlyForecastCard";
+import type { WeatherHour } from "@/types/weatherTypes";
 
 interface WeatherCardProps {
   weatherData: any;
-  hourlyForecast?: any[];
+  hourlyForecast?: WeatherHour[];
 }
 
 const WeatherCard: React.FC<WeatherCardProps> = ({
@@ -104,6 +105,39 @@ const WeatherCard: React.FC<WeatherCardProps> = ({
       ) || []
     );
   }, [todayForecast]);
+
+  // Prevent scrolling outside the modal when it is open
+  useEffect(() => {
+    if (isAlertModalOpen) {
+      // Save the current scroll position
+      const scrollY = window.scrollY;
+
+      // Disable background scrolling and fix the body position
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = "100%";
+      document.body.style.overflow = "hidden";
+    } else {
+      // Restore the scroll position and enable scrolling
+      const scrollY = document.body.style.top;
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.width = "";
+      document.body.style.overflow = "";
+      window.scrollTo(0, parseInt(scrollY || "0") * -1);
+    }
+
+    // Clean up on component unmount or when modal state changes
+    return () => {
+      // Restore the scroll position and enable scrolling on cleanup
+      const scrollY = document.body.style.top;
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.width = "";
+      document.body.style.overflow = "";
+      window.scrollTo(0, parseInt(scrollY || "0") * -1);
+    };
+  }, [isAlertModalOpen]);
 
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {

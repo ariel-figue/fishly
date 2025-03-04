@@ -32,9 +32,9 @@ export interface Condition {
 
 // Tide and Tides
 export interface Tide {
-  time: string;
-  height_mt: string;
-  type: "LOW" | "HIGH";
+  tide_time: string;
+  tide_height_mt: string;
+  tide_type: string;
 }
 
 export interface Tides {
@@ -137,10 +137,6 @@ export interface WeatherDay {
   tides?: Tides[];
   condition: Condition;
   uv: number;
-  daily_will_it_rain?: number;
-  daily_chance_of_rain?: number;
-  daily_will_it_snow?: number;
-  daily_chance_of_snow?: number;
 }
 
 // Forecast Day Structures

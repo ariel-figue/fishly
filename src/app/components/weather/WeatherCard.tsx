@@ -38,7 +38,7 @@ const WeatherCard: React.FC<WeatherCardProps> = ({
     [weatherData]
   );
   const forecast = useMemo(
-    () => weatherData?.marine?.forecast || {},
+    () => weatherData?.marine?.forecast || { forecastday: [] },
     [weatherData]
   );
   const alerts = useMemo(() => {
@@ -53,13 +53,23 @@ const WeatherCard: React.FC<WeatherCardProps> = ({
     () => forecast?.forecastday?.[0] || {},
     [forecast]
   );
-  const { sunrise, sunset, moon_phase, moon_illumination, moonrise, moonset } =
-    todayForecast?.astro || {};
-  const moonPhase = moon_phase || "Unknown";
-  const tides = useMemo(
-    () => todayForecast?.day?.tides?.[0]?.tide || [],
-    [todayForecast]
+  const nextDayForecast = useMemo(
+    () => forecast?.forecastday?.[1] || {},
+    [forecast]
   );
+  const { sunrise: todaySunrise, sunset: todaySunset, moon_phase, moon_illumination, moonrise, moonset } =
+    todayForecast?.astro || {};
+  const { sunrise: nextDaySunrise, sunset: nextDaySunset } = nextDayForecast?.astro || {};
+  const moonPhase = moon_phase || "Unknown";
+
+  // Determine which day's tides to show based on the current time
+  const tides = useMemo(() => {
+    const forecastDays = forecast?.forecastday || [];
+    const tidesDay1 = forecastDays[0]?.day?.tides?.[0]?.tide || [];
+    const tidesDay2 = forecastDays.length >= 2 ? forecastDays[1]?.day?.tides?.[0]?.tide || [] : [];
+    return [...tidesDay1, ...tidesDay2];
+  }, [forecast]);
+
   const marineConditions = useMemo(
     () =>
       hourlyForecast?.length > 0
@@ -99,26 +109,62 @@ const WeatherCard: React.FC<WeatherCardProps> = ({
 
   const futureHourlyForecast = useMemo(() => {
     const currentTime = new Date();
-    return (
-      todayForecast?.hour?.filter(
-        (hour: any) => new Date(hour.time) > currentTime
-      ) || []
-    );
-  }, [todayForecast]);
+    const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-  // Prevent scrolling outside the modal when it is open
+    // Get the current date in the user's timezone
+    const currentDate = new Date(currentTime.toLocaleString("en-US", { timeZone: userTimeZone }));
+    const currentDateString = currentDate.toLocaleDateString("en-US", {
+      timeZone: userTimeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).split("/").reverse().join("-");
+
+    // Get the next day's date
+    const nextDay = new Date(currentDate);
+    nextDay.setDate(currentDate.getDate() + 1);
+    const nextDayString = nextDay.toLocaleDateString("en-US", {
+      timeZone: userTimeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).split("/").reverse().join("-");
+
+    // Combine hourly data from both days
+    const hourlyDay1 = todayForecast?.hour || [];
+    const hourlyDay2 = nextDayForecast?.hour || [];
+    const combinedHourly = [...hourlyDay1, ...hourlyDay2];
+
+    // Filter for future hours and sort by time
+    const futureHours = combinedHourly
+      .filter((hour: any) => {
+        const hourDate = new Date(hour.time).toLocaleDateString("en-US", {
+          timeZone: userTimeZone,
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        }).split("/").reverse().join("-");
+        // Include only hours from the current day or next day that are in the future
+        return (
+          (hourDate === currentDateString || hourDate === nextDayString) &&
+          new Date(hour.time) > currentTime
+        );
+      })
+      .sort(
+        (a: any, b: any) => new Date(a.time).getTime() - new Date(b.time).getTime()
+      );
+
+    return futureHours;
+  }, [todayForecast, nextDayForecast]);
+
   useEffect(() => {
     if (isAlertModalOpen) {
-      // Save the current scroll position
       const scrollY = window.scrollY;
-
-      // Disable background scrolling and fix the body position
       document.body.style.position = "fixed";
       document.body.style.top = `-${scrollY}px`;
       document.body.style.width = "100%";
       document.body.style.overflow = "hidden";
     } else {
-      // Restore the scroll position and enable scrolling
       const scrollY = document.body.style.top;
       document.body.style.position = "";
       document.body.style.top = "";
@@ -127,9 +173,7 @@ const WeatherCard: React.FC<WeatherCardProps> = ({
       window.scrollTo(0, parseInt(scrollY || "0") * -1);
     }
 
-    // Clean up on component unmount or when modal state changes
     return () => {
-      // Restore the scroll position and enable scrolling on cleanup
       const scrollY = document.body.style.top;
       document.body.style.position = "";
       document.body.style.top = "";
@@ -242,8 +286,8 @@ const WeatherCard: React.FC<WeatherCardProps> = ({
           <FishingForecastCard score={fishingScore} />
           <div className="grid grid-cols-1 gap-3 sm:gap-4">
             <SunMoonCard
-              sunrise={sunrise}
-              sunset={sunset}
+              sunrise={todaySunrise}
+              sunset={todaySunset}
               moonrise={moonrise}
               moonset={moonset}
               moonPhase={moonPhase}
@@ -300,14 +344,22 @@ const WeatherCard: React.FC<WeatherCardProps> = ({
             <WeatherInfoCard label="Visibility" value={weatherInfo.vis_miles} />
             <WeatherInfoCard
               label="UV Index"
-              value={`${weatherInfo.uv} (${getUVDescription(
-                parseFloat(weatherInfo.uv)
-              )})`}
+              value={
+                weatherInfo.uv !== "N/A"
+                  ? `${weatherInfo.uv} (${getUVDescription(parseFloat(weatherInfo.uv))})`
+                  : "N/A"
+              }
             />
           </div>
         </>
       ) : (
-        <HourlyForecastCard forecast={futureHourlyForecast} />
+        <HourlyForecastCard
+          forecast={futureHourlyForecast}
+          todaySunrise={todaySunrise}
+          todaySunset={todaySunset}
+          nextDaySunrise={nextDaySunrise}
+          nextDaySunset={nextDaySunset}
+        />
       )}
     </div>
   );

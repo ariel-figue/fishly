@@ -36,12 +36,12 @@ export async function GET(req: Request) {
     if (lat && lon) {
       // ✅ Fetch Marine Weather
       const marineResponse = await axios.get(
-        `https://api.weatherapi.com/v1/marine.json?key=${weatherApiKey}&q=${lat},${lon}&days=1`
+        `https://api.weatherapi.com/v1/marine.json?key=${weatherApiKey}&q=${lat},${lon}&days=2`
       );
 
       // ✅ Fetch Land-Based Forecast & Alerts
       const forecastResponse = await axios.get(
-        `https://api.weatherapi.com/v1/forecast.json?key=${weatherApiKey}&q=${lat},${lon}&days=3&alerts=yes&hour=24`
+        `https://api.weatherapi.com/v1/forecast.json?key=${weatherApiKey}&q=${lat},${lon}&days=2&alerts=yes&hour=24`
       );
 
       // ✅ Fetch Moon Info
